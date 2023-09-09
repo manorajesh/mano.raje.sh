@@ -1,0 +1,21 @@
+{
+  "name": "mano.raje.sh",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "pages:dev": "wrangler pages dev --compatibility-date=2023-09-09 --proxy 3000 -- astro dev",
+    "pages:deploy": "astro build && wrangler pages deploy ./dist"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "^7.0.2",
+    "astro": "^3.0.12"
+  },
+  "devDependencies": {
+    "wrangler": "^3.7.0"
+  }
+}
