@@ -1,0 +1,99 @@
+---
+import Layout from '../../layouts/Default.astro';
+import PostsLine from '../../components/PostsLine.astro';
+import BackButton from '../../components/BackButton.astro';
+import '../../styles/global.css';
+const allPosts = await Astro.glob("../../content/posts/*.md");
+allPosts.sort((a: any, b: any) => Date.parse(b.date) - Date.parse(a.date))
+---
+
+<Layout title="Writings">
+  <main>
+    <BackButton title='home' href='/'/>
+    <h1 class="title text-gradient">Brain Pickings</h1>
+    <sub>A few interesting notes</sub>
+    <hr>
+    {
+      allPosts.map((post: any) => {
+        const date = new Date(post.frontmatter.date);
+        const formattedDate = `${date.toLocaleString("default", {
+          month: "long",
+        })} ${date.getDate()}, ${date.getFullYear()}`;
+        return (
+          <article>
+            <h3 class="post-heading">
+              <a href={`/posts/${post.slug}`} class="post-link">
+                <span class="posttitle">{post.frontmatter.title}</span>
+                <span class="line" />
+                <span class="subheading">{formattedDate}</span>
+              </a>
+            </h3>
+          </article>
+        );
+      })
+    }
+  </main>
+</Layout>
+
+<style>
+  .title {
+    font-size: 3rem;
+    margin-bottom: 0;
+    
+  }
+
+  sub {
+    font-size: 1rem;
+    margin-top: 0;
+    margin-bottom: 2rem;
+    /* color: var(--accent-gradient); */
+  }
+
+  a {
+    color: #ffffff;
+    text-decoration: none;
+  }
+
+  a:hover {
+    /* gradient */
+    background: -webkit-linear-gradient(#e5a9a9, #805ede);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .subheading {
+    font-size: 1rem;
+    font-weight: 400;
+    color: #cacaca;
+    margin-left: 1rem;
+    text-wrap: nowrap;
+  }
+
+  .post-heading {
+    display: flex;
+    align-items: center;
+  }
+
+  .post-link {
+    display: flex;
+    justify-content: space-between; /* New Line */
+    align-items: center;
+    text-decoration: none;
+    width: 100%; /* New Line */
+  }
+
+  .posttitle {
+    font-size: clamp(2px, 4vw, 2rem);
+    font-weight: 600;
+    margin-right: 1rem;
+    text-wrap: nowrap;
+  }
+
+  .line {
+    flex-grow: 1;
+    height: min(2px, 0.3vw);
+    background-color: #333;
+    min-width: 10px; /* Optional, to ensure it shows when title and date are long */
+    display: inline-block;
+  }
+</style>

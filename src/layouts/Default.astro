@@ -1,0 +1,88 @@
+---
+interface Props {
+	title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="description" content="Astro description" />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.png" />
+		<meta name="generator" content={Astro.generator} />
+		<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital@1&display=swap" rel="stylesheet">
+		<link rel="stylesheet" href="https://use.typekit.net/yoj1mzf.css">
+		<title>{title}</title>
+	</head>
+	<body>
+		<slot />
+	</body>
+</html>
+
+<style is:global>
+	:root {
+		--accent: 136, 58, 234;
+		--accent-light: (173, 216, 255, 0.8);
+		--accent-dark: (204, 190, 255, 0.8);
+		--accent-gradient: linear-gradient(45deg, 
+    rgba(204, 190, 255, 0.8), 
+    rgba(173, 216, 255, 0.8), 
+    rgba(255, 182, 183, 0.8));
+	}
+	html {
+		font-family: 'futura-pt';
+		font-size: 16px;
+		background: #13151a;
+		background-size: 224px;
+	}
+	code {
+		font-family:
+			Menlo,
+			Monaco,
+			Lucida Console,
+			Liberation Mono,
+			DejaVu Sans Mono,
+			Bitstream Vera Sans Mono,
+			Courier New,
+			monospace;
+
+		font-size: 0.9em;
+		background: linear-gradient(45deg, 
+    rgba(185, 239, 190, 0.8), 
+    rgba(204, 190, 255, 0.8), 
+    rgba(173, 216, 255, 0.8), 
+    rgba(255, 182, 183, 0.8));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+	}
+	body::before {
+		content: "";
+		position: absolute;
+		z-index: -1;
+		background-image: url('/meta.png');
+        background-size: contain;
+        background-repeat: repeat;
+		height: 1000vh;
+		width: 100%;
+		filter: blur(10px) saturate(1.5) opacity(0.2) contrast(1.1);
+	}
+	body {
+		margin: 0;
+		overflow-x: hidden;
+	}
+	.text-gradient {
+		background: linear-gradient(45deg, 
+    rgba(185, 239, 190, 0.8), 
+    rgba(204, 190, 255, 0.8), 
+    rgba(173, 216, 255, 0.8), 
+    rgba(255, 182, 183, 0.8));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+	}
+</style>

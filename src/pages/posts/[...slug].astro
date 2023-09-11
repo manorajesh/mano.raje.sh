@@ -1,0 +1,15 @@
+---
+import { CollectionEntry, getEntryBySlug } from 'astro:content'
+import PostDetailLayout from '../../layouts/PostDetailLayout.astro';
+
+export interface Params {
+	slug: CollectionEntry<'posts'>['slug']
+}
+
+const post = await getEntryBySlug('posts', Astro.params.slug)
+const { Content } = await post.render();
+---
+
+<PostDetailLayout {...post.data}>
+	<Content />
+</PostDetailLayout>

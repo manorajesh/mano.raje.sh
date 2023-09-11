@@ -1,0 +1,20 @@
+---
+import '../styles/global.css';
+import Default from '../layouts/Default.astro';
+import type { CollectionEntry } from 'astro:content';
+
+type Props = CollectionEntry<'posts'>['data'];
+
+const { title, date } = Astro.props;
+
+const newpubDate = new Date(date);
+const formattedDate = `${newpubDate.toLocaleString('default', { month: 'long' })} ${newpubDate.getDate()}, ${newpubDate.getFullYear()}`;
+---
+
+<Default title={title}>
+  <div>
+	<h1>{title}</h1>
+	<hr>
+	<h2>Written on {formattedDate}</h2>
+	<slot />
+</div>
