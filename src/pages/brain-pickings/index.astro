@@ -32,6 +32,7 @@ allPosts.sort((a: any, b: any) => Date.parse(b.data.date) - Date.parse(a.data.da
         );
       })
     }
+    <sub class="footer text-gradient">more to come...</sub>
   </main>
 </Default>
 
@@ -95,5 +96,11 @@ allPosts.sort((a: any, b: any) => Date.parse(b.data.date) - Date.parse(a.data.da
     background-color: #333;
     min-width: 10px; /* Optional, to ensure it shows when title and date are long */
     display: inline-block;
+  }
+
+  .footer {
+    font-size: 1rem;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
   }
 </style>

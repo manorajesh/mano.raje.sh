@@ -17,7 +17,7 @@ const formattedDate = `${newpubDate.toLocaleString("default", {
 <Default title={title}>
 	<main>
 		<BackButton title="brain pickings" href="/brain-pickings" />
-		<h1 class="title text-gradient posttitle">{title}</h1>
+		<h1 class="title text-gradient">{title}</h1>
 		<sub>{formattedDate}</sub>
 		<hr>
 		<slot />
@@ -25,9 +25,5 @@ const formattedDate = `${newpubDate.toLocaleString("default", {
 </Default>
 
 <style>
-	posttitle {
-		text-wrap: nowrap;
-		font-size: smaller;
-	}
 
 </style>
