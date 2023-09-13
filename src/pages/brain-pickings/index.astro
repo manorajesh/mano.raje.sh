@@ -3,6 +3,7 @@ import Default from '../../layouts/Default.astro';
 import BackButton from '../../components/BackButton.astro';
 import '../../styles/global.css';
 import { getCollection } from 'astro:content';
+import Identicon from '../../components/Identicon.astro';
 const allPosts = await getCollection('posts');
 allPosts.sort((a: any, b: any) => Date.parse(b.data.date) - Date.parse(a.data.date))
 ---
@@ -22,6 +23,7 @@ allPosts.sort((a: any, b: any) => Date.parse(b.data.date) - Date.parse(a.data.da
         return (
           <article>
             <h3 class="post-heading">
+              <Identicon title={post.data.title}/>
               <a href={`brain-pickings/${post.slug}`} class="post-link">
                 <span class="posttitle">{post.data.title}</span>
                 <span class="line" />

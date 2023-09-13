@@ -1,0 +1,21 @@
+---
+interface Props {
+    title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<img
+  src=`https://api.dicebear.com/7.x/identicon/svg?seed=${title}`
+  alt="avatar"
+/>
+
+<style>
+    img {
+        width: 1em;
+        height: 100%;
+        border-radius: 1%;
+        padding: 0.5em;
+    }
+</style>
