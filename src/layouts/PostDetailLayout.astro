@@ -1,20 +1,33 @@
 ---
-import '../styles/global.css';
-import Default from '../layouts/Default.astro';
-import type { CollectionEntry } from 'astro:content';
+import "../styles/global.css";
+import Default from "../layouts/Default.astro";
+import type { CollectionEntry } from "astro:content";
+import BackButton from "../components/BackButton.astro";
 
-type Props = CollectionEntry<'posts'>['data'];
+type Props = CollectionEntry<"posts">["data"];
 
 const { title, date } = Astro.props;
 
 const newpubDate = new Date(date);
-const formattedDate = `${newpubDate.toLocaleString('default', { month: 'long' })} ${newpubDate.getDate()}, ${newpubDate.getFullYear()}`;
+const formattedDate = `${newpubDate.toLocaleString("default", {
+	month: "long",
+})} ${newpubDate.getDate()}, ${newpubDate.getFullYear()}`;
 ---
 
 <Default title={title}>
-  <div>
-	<h1>{title}</h1>
-	<hr>
-	<h2>Written on {formattedDate}</h2>
-	<slot />
-</div>
+	<main>
+		<BackButton title="brain pickings" href="/brain-pickings" />
+		<h1 class="title text-gradient posttitle">{title}</h1>
+		<sub>{formattedDate}</sub>
+		<hr>
+		<slot />
+	</main>
+</Default>
+
+<style>
+	posttitle {
+		text-wrap: nowrap;
+		font-size: smaller;
+	}
+
+</style>

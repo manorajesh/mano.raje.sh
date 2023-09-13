@@ -1,13 +1,13 @@
 ---
-import Layout from '../../layouts/Default.astro';
-import PostsLine from '../../components/PostsLine.astro';
+import Default from '../../layouts/Default.astro';
 import BackButton from '../../components/BackButton.astro';
 import '../../styles/global.css';
-const allPosts = await Astro.glob("../../content/posts/*.md");
-allPosts.sort((a: any, b: any) => Date.parse(b.date) - Date.parse(a.date))
+import { getCollection } from 'astro:content';
+const allPosts = await getCollection('posts');
+allPosts.sort((a: any, b: any) => Date.parse(b.data.date) - Date.parse(a.data.date))
 ---
 
-<Layout title="Writings">
+<Default title="Writings">
   <main>
     <BackButton title='home' href='/'/>
     <h1 class="title text-gradient">Brain Pickings</h1>
@@ -15,15 +15,15 @@ allPosts.sort((a: any, b: any) => Date.parse(b.date) - Date.parse(a.date))
     <hr>
     {
       allPosts.map((post: any) => {
-        const date = new Date(post.frontmatter.date);
+        const date = new Date(post.data.date);
         const formattedDate = `${date.toLocaleString("default", {
           month: "long",
         })} ${date.getDate()}, ${date.getFullYear()}`;
         return (
           <article>
             <h3 class="post-heading">
-              <a href={`/posts/${post.slug}`} class="post-link">
-                <span class="posttitle">{post.frontmatter.title}</span>
+              <a href={`brain-pickings/${post.slug}`} class="post-link">
+                <span class="posttitle">{post.data.title}</span>
                 <span class="line" />
                 <span class="subheading">{formattedDate}</span>
               </a>
@@ -33,7 +33,7 @@ allPosts.sort((a: any, b: any) => Date.parse(b.date) - Date.parse(a.date))
       })
     }
   </main>
-</Layout>
+</Default>
 
 <style>
   .title {

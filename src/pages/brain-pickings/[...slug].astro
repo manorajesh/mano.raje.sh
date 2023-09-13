@@ -1,0 +1,16 @@
+---
+import { getEntryBySlug } from "astro:content";
+import PostDetailLayout from "../../layouts/PostDetailLayout.astro"
+const { slug } = Astro.params;
+
+if (!slug) {
+  Astro.redirect("/404")
+}
+const post = await getEntryBySlug("posts", slug || "you-and-i-and-ai");
+const { Content } = await post?.render() || {};
+---
+
+<PostDetailLayout {...post?.data}>
+	<Content />
+</PostDetailLayout>
+```
