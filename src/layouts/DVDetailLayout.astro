@@ -25,6 +25,21 @@ const formattedDate = `ctime ${Math.floor(newpubDate.getTime() / 1000).toString(
     <h1 class="title text-gradient">/devlog/{id}</h1>
     <sub class="date-subheading">{formattedDate}</sub>
     <hr />
-    <slot />
+    <div class="content">
+      <slot />
+    </div>
   </main>
 </Default>
+
+<style is:global>
+  .content a {
+    color: var(--accent);
+  }
+
+  .content a:hover {
+    /* gradient */
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+</style>

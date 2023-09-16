@@ -17,13 +17,13 @@ sub {
   font-style: normal;
 }
 
-a {
+.ls-output a {
   color: #ffffff;
   text-decoration: none;
   font-family: monospace;
 }
 
-p a:hover {
+.ls-output a:hover {
   /* gradient */
   background: -webkit-linear-gradient(#e5a9a9, #805ede);
   -webkit-background-clip: text;
