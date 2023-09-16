@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import "../styles/home.css";
 import Default from "./Default.astro";
 import type { CollectionEntry } from "astro:content";
 import BackButton from "../components/BackButton.astro";
@@ -18,7 +19,7 @@ const formattedDate = `${newpubDate.toLocaleString("default", {
 <Default title={title}>
   <main>
     <BackButton title="brain pickings" href="/brain-pickings" />
-    <h1 class="title text-gradient">{title}</h1>
+    <h1 class="home-title title text-gradient">{title}</h1>
     <span class="date-line">
       <sub class="subheading">{formattedDate}</sub>
       <Identicon title={title} />

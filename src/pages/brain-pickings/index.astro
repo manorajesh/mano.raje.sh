@@ -2,6 +2,7 @@
 import Default from "../../layouts/Default.astro";
 import BackButton from "../../components/BackButton.astro";
 import "../../styles/global.css";
+import "../../styles/home.css";
 import { getCollection } from "astro:content";
 import Identicon from "../../components/Identicon.astro";
 
@@ -14,7 +15,7 @@ allPosts.sort(
 <Default title="Writings">
   <main>
     <BackButton title="home" href="/" />
-    <h1 class="title text-gradient">Brain Pickings</h1>
+    <h1 class="home-title title text-gradient">Brain Pickings</h1>
     <sub class="subheading">A few interesting notes</sub>
     <hr />
     {
