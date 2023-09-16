@@ -25,7 +25,6 @@ h1 {
   text-align: center;
   margin-bottom: 1em;
   font-family: "Libre Baskerville", "Baskerville", "futura-pt";
-  font-style:;
 }
 
 .text-gradient {
@@ -36,49 +35,16 @@ h1 {
   line-height: 1.3;
 }
 
-.crop-image {
-  width: 100%;
-  height: 12vh;
-  object-fit: cover;
-  /* transform: scale(4); */
-  /* blur */
-  /* filter: blur(8px); */
-  /* drop shadow */
-  /* mix-blend-mode: hard-light; */
-  /* filter: grayscale(0%) drop-shadow(0 0 20px black); */
-  /* filter: sepia(19%) saturate(1444%) hue-rotate(300deg) brightness(90%) contrast(86%); */
-  filter: opacity(0.1);
-}
-
 .title {
-  font-size: clamp(16px, 6vw, 3rem); /* Scales with the viewport width */
   text-align: left;
   margin-bottom: 0;
 }
 
-.titleimages {
-  display: flex;
-  flex-direction: column-reverse;
-  justify-content: space-between;
-}
-
 p {
   font-size: clamp(19px, 3vw, 1.5rem);
-  /* font-weight: 700; */
   line-height: 2;
-  /* margin-bottom: 1em; */
-  /* font-family: 'Libre Baskerville', serif; */
-  /* wrap text */
   word-wrap: break-word;
-  /* hyphenate text */
   hyphens: auto;
-}
-
-.brain {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(12ch, 1fr));
-  gap: 1rem;
-  margin-top: 1em;
 }
 
 /* latin */
