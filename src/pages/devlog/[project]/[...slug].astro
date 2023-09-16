@@ -1,0 +1,16 @@
+---
+import { getCollection } from 'astro:content';
+import DVDetailLayout from '../../../layouts/DVDetailLayout.astro';
+
+const allPosts = await getCollection('devlog');
+const { project, slug } = Astro.params;
+const post = allPosts.find(p => p.slug === `${project}/${slug}`);
+if (!post) {
+  throw new Error(`Post not found: ${project}/${slug}`);
+}
+const { Content } = await post?.render() || {};
+---
+
+<DVDetailLayout {...post}>
+	<Content />
+</DVDetailLayout>

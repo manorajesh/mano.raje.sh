@@ -5,41 +5,43 @@ import '../../styles/global.css';
 import { getCollection } from 'astro:content';
 import Identicon from '../../components/Identicon.astro';
 
-const allPosts = await getCollection('bp-posts');
-allPosts.sort((a: any, b: any) => Date.parse(b.data.date) - Date.parse(a.data.date))
+const allPosts = await getCollection('devlog');
+// allPosts.sort((a: any, b: any) => Date.parse(b.data.date) - Date.parse(a.data.date))
+const today = new Date();
+const formattedToday = `${today.toLocaleString("default", {
+          month: "short",
+        })} ${today.getDate()} ${today.getFullYear()}`;
+const numProjects = allPosts.length;
 ---
 
-<Default title="Writings">
+<Default title="Devlog">
   <main>
     <BackButton title='home' href='/'/>
-    <h1 class="title text-gradient">Brain Pickings</h1>
-    <sub>A few interesting notes</sub>
+    <h1 class="title text-gradient">/devlog</h1>
+    <sub style="color: gray">ll /var/log</sub>
     <hr>
+    <p class="ls-output"><a href={`/devlog`}>dr-xr-xr-x {numProjects+2} mano&nbsp;&nbsp;4096 {formattedToday}&nbsp;.</a></p>
+    <p class="ls-output"><a href={`/`}>dr-xr-xr-x 2 mano&nbsp;&nbsp;4096 {formattedToday}&nbsp;..</a></p>
     {
       allPosts.map((post: any) => {
         const date = new Date(post.data.date);
         const formattedDate = `${date.toLocaleString("default", {
-          month: "long",
-        })} ${date.getDate()}, ${date.getFullYear()}`;
+          month: "short",
+        })} ${date.getDate()} ${date.getFullYear()}`;
+        const numPosts = allPosts.filter(p => p.data.project === post.data.project).length;
         return (
-          <article>
-            <h3 class="post-heading">
-              <Identicon title={post.data.title}/>
-              <a href={`brain-pickings/${post.slug}`} class="post-link">
-                <span class="posttitle">{post.data.title}</span>
-                <span class="line" />
-                <span class="subheading">{formattedDate}</span>
-              </a>
-            </h3>
-          </article>
+          <p class="ls-output"><a href={`/devlog/${post.data.project}`}>dr-xr-xr-x {numPosts+2} mano&nbsp;&nbsp;4096 {formattedDate}&nbsp;{post.data.project}</a></p>
         );
       })
     }
-    <sub class="footer text-gradient">more to come...</sub>
   </main>
 </Default>
 
+
 <style>
+  * {
+    font-family: monospace;
+  }
   .title {
     font-size: 3rem;
     margin-bottom: 0;
@@ -105,5 +107,11 @@ allPosts.sort((a: any, b: any) => Date.parse(b.data.date) - Date.parse(a.data.da
     font-size: 1rem;
     margin-top: 2rem;
     margin-bottom: 2rem;
+  }
+
+  .ls-output {
+    margin-top: 0;
+    margin-bottom: 0;
+    line-height: 1.5;
   }
 </style>

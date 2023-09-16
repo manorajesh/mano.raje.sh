@@ -1,10 +1,11 @@
 ---
 import "../styles/global.css";
-import Default from "../layouts/Default.astro";
+import Default from "./Default.astro";
 import type { CollectionEntry } from "astro:content";
 import BackButton from "../components/BackButton.astro";
+import Identicon from "../components/Identicon.astro";
 
-type Props = CollectionEntry<"posts">["data"];
+type Props = CollectionEntry<"bp-posts">["data"];
 
 const { title, date } = Astro.props;
 
@@ -18,7 +19,10 @@ const formattedDate = `${newpubDate.toLocaleString("default", {
 	<main>
 		<BackButton title="brain pickings" href="/brain-pickings" />
 		<h1 class="title text-gradient">{title}</h1>
-		<sub>{formattedDate}</sub>
+		<span class="date-line">
+			<sub class="subheading">{formattedDate}</sub>
+			<Identicon title={title}/>
+		</span>
 		<hr>
 		<slot />
 	</main>
@@ -29,5 +33,24 @@ const formattedDate = `${newpubDate.toLocaleString("default", {
 		width: 100px;
 		height: 100px;
 		border-radius: 50%;
+	}
+
+	.date-line {
+		display: flex;
+		flex-grow: 1;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.subheading {
+		font-size: 1rem;
+		font-weight: 400;
+		color: #cacaca;
+		text-wrap: nowrap;
+	}
+
+	.title {
+		font-size: 200%;
+      max-width: 100%;
 	}
 </style>
