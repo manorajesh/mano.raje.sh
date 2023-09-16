@@ -1,15 +1,15 @@
 ---
 import { getEntryBySlug } from "astro:content";
-import BPDetailLayout from "../../layouts/BPDetailLayout.astro"
+import BPDetailLayout from "../../layouts/BPDetailLayout.astro";
 const { slug } = Astro.params;
 
 if (!slug) {
-  Astro.redirect("/404")
+  Astro.redirect("/404");
 }
 const post = await getEntryBySlug("bp-posts", slug || "");
-const { Content } = await post?.render() || {};
+const { Content } = (await post?.render()) || {};
 ---
 
 <BPDetailLayout {...post?.data}>
-	<Content />
+  <Content />
 </BPDetailLayout>

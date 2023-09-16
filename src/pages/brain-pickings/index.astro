@@ -1,20 +1,22 @@
 ---
-import Default from '../../layouts/Default.astro';
-import BackButton from '../../components/BackButton.astro';
-import '../../styles/global.css';
-import { getCollection } from 'astro:content';
-import Identicon from '../../components/Identicon.astro';
+import Default from "../../layouts/Default.astro";
+import BackButton from "../../components/BackButton.astro";
+import "../../styles/global.css";
+import { getCollection } from "astro:content";
+import Identicon from "../../components/Identicon.astro";
 
-const allPosts = await getCollection('bp-posts');
-allPosts.sort((a: any, b: any) => Date.parse(b.data.date) - Date.parse(a.data.date))
+const allPosts = await getCollection("bp-posts");
+allPosts.sort(
+  (a: any, b: any) => Date.parse(b.data.date) - Date.parse(a.data.date),
+);
 ---
 
 <Default title="Writings">
   <main>
-    <BackButton title='home' href='/'/>
+    <BackButton title="home" href="/" />
     <h1 class="title text-gradient">Brain Pickings</h1>
-    <sub>A few interesting notes</sub>
-    <hr>
+    <sub class="subheading">A few interesting notes</sub>
+    <hr />
     {
       allPosts.map((post: any) => {
         const date = new Date(post.data.date);
@@ -24,11 +26,10 @@ allPosts.sort((a: any, b: any) => Date.parse(b.data.date) - Date.parse(a.data.da
         return (
           <article>
             <h3 class="post-heading">
-              <Identicon title={post.data.title}/>
               <a href={`brain-pickings/${post.slug}`} class="post-link">
-                <span class="posttitle">{post.data.title}</span>
+                <span class="post-title">{post.data.title}</span>
                 <span class="line" />
-                <span class="subheading">{formattedDate}</span>
+                <span class="date-line">{formattedDate}</span>
               </a>
             </h3>
           </article>
@@ -43,7 +44,6 @@ allPosts.sort((a: any, b: any) => Date.parse(b.data.date) - Date.parse(a.data.da
   .title {
     font-size: 3rem;
     margin-bottom: 0;
-    
   }
 
   sub {
@@ -65,11 +65,18 @@ allPosts.sort((a: any, b: any) => Date.parse(b.data.date) - Date.parse(a.data.da
     -webkit-text-fill-color: transparent;
   }
 
-  .subheading {
+  .date-line {
     font-size: 1rem;
     font-weight: 400;
     color: #cacaca;
     margin-left: 1rem;
+    text-wrap: nowrap;
+  }
+
+  .subheading {
+    font-size: 1rem;
+    font-weight: 400;
+    color: #cacaca;
     text-wrap: nowrap;
   }
 
@@ -86,7 +93,7 @@ allPosts.sort((a: any, b: any) => Date.parse(b.data.date) - Date.parse(a.data.da
     width: 100%; /* New Line */
   }
 
-  .posttitle {
+  .post-title {
     font-size: clamp(2px, 4vw, 2rem);
     font-weight: 600;
     margin-right: 1rem;

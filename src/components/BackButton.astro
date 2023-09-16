@@ -1,24 +1,24 @@
 ---
 interface Props {
-    title: string
-    href: string
+  title: string;
+  href: string;
 }
 
-const { title, href } = Astro.props
+const { title, href } = Astro.props;
 ---
 
 <a href={href} class="back">&laquo; {title}</a>
 
 <style>
-    .back {
-        font-family: "futura-pt" sans-serif;
-        display: block;
-        margin-bottom: 1em;
-        color: #999;
-        text-decoration: none;
-        font-size: medium;
-    }
-    .back:hover {
-        color: #666;
-    }
+  .back {
+    font-family: "futura-pt" sans-serif;
+    display: block;
+    margin-bottom: 1em;
+    color: #999;
+    text-decoration: none;
+    font-size: medium;
+  }
+  .back:hover {
+    color: #666;
+  }
 </style>

@@ -1,40 +1,54 @@
 ---
-import Default from '../../../layouts/Default.astro';
-import BackButton from '../../../components/BackButton.astro';
-import '../../../styles/global.css';
-import '../../../styles/devlog.css';
-import { getCollection } from 'astro:content';
-import Identicon from '../../../components/Identicon.astro';
+import Default from "../../../layouts/Default.astro";
+import BackButton from "../../../components/BackButton.astro";
+import "../../../styles/global.css";
+import "../../../styles/devlog.css";
+import { getCollection } from "astro:content";
+import Identicon from "../../../components/Identicon.astro";
 
-const allPosts = await getCollection('devlog');
+const allPosts = await getCollection("devlog");
 const { project } = Astro.params;
-const projectPosts = allPosts.filter(post => post.data.project === project);
+const projectPosts = allPosts.filter((post) => post.data.project === project);
 const numPosts = projectPosts.length;
 const today = new Date();
 const formattedToday = `${today.toLocaleString("default", {
-          month: "short",
-        })} ${today.getDate()} ${today.getFullYear()}`;
+  month: "short",
+})} ${today.getDate()} ${today.getFullYear()}`;
 ---
 
 <Default title="Devlog">
-    <main>
-      <BackButton title='devlog' href='/devlog'/>
-      <h1 class="title text-gradient">/devlog/{project}</h1>
-      <sub style="color: gray">ll /var/log/{project}</sub>
-      <hr>
-      <p class="ls-output"><a href={`/devlog/${project}`}>dr-xr-xr-x {numPosts+2} mano&nbsp;&nbsp;4096 {formattedToday}&nbsp;.</a></p>
-      <p class="ls-output"><a href={`/devlog`}>dr-xr-xr-x 2 mano&nbsp;&nbsp;4096 {formattedToday}&nbsp;..</a></p>
-      {
-        projectPosts.map((post: any) => {
-          const date = new Date(post.data.date);
-          const formattedDate = `${date.toLocaleString("default", {
-            month: "short",
-          })} ${date.getDate()} ${date.getFullYear()}`;
-          return (
-            <p class="ls-output"><a href={`/devlog/${post.slug}`}>-r--r--r-- 1 mano&nbsp;&nbsp;4096 {formattedDate}&nbsp;'{post.data.title}.md'</a></p>
-          );
-        })
-      }
-    </main>
-  </Default>
-  
+  <main>
+    <BackButton title="devlog" href="/devlog" />
+    <h1 class="title text-gradient">/devlog/{project}</h1>
+    <sub class="date-subheading" style="color: gray">ll /var/log/{project}</sub>
+    <hr />
+    <p class="ls-output">
+      <a href={`/devlog/${project}`}
+        >dr-xr-xr-x {numPosts + 2} mano&nbsp;&nbsp;256 {
+          formattedToday
+        }&nbsp;.</a
+      >
+    </p>
+    <p class="ls-output">
+      <a href={`/devlog`}
+        >dr-xr-xr-x 2 mano&nbsp;&nbsp;256 {formattedToday}&nbsp;..</a
+      >
+    </p>
+    {
+      projectPosts.map((post: any) => {
+        const date = new Date(post.data.date);
+        const formattedDate = `${date.toLocaleString("default", {
+          month: "short",
+        })} ${date.getDate()} ${date.getFullYear()}`;
+        return (
+          <p class="ls-output">
+            <a href={`/devlog/${post.slug}`}>
+              -r--r--r-- 1 mano&nbsp;&nbsp;256 {formattedDate}&nbsp;'
+              {post.data.title}.md'
+            </a>
+          </p>
+        );
+      })
+    }
+  </main>
+</Default>

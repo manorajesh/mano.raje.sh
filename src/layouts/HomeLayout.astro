@@ -1,64 +1,106 @@
 ---
-import Default from './Default.astro';
-import '../styles/global.css';
+import Default from "./Default.astro";
+import "../styles/global.css";
 
 interface Props {
-	title: string;
+  title: string;
 }
 
 const { title } = Astro.props;
 ---
 
 <Default title={title}>
-	<main>
-		<div class="imagecontainer">
-			<div class="titleimages">
-				<img src="/images/mano6.png" class="crop-image" decoding="async" loading="lazy" alt="mano">
-				<img src="/images/mano0.png" class="crop-image" decoding="async" loading="lazy" alt="mano">
-				<img src="/images/mano2.png" class="crop-image" decoding="async" loading="lazy" alt="mano">
-				<img src="/images/mano1.png" class="crop-image" decoding="async" loading="lazy" alt="mano">
-				<img src="/images/mano3.png" class="crop-image" decoding="async" loading="lazy" alt="mano">
-				<img src="/images/mano4(1).png" class="crop-image" decoding="async" loading="lazy" alt="mano">
-				<img src="/images/mano5.png" class="crop-image" decoding="async" loading="lazy" alt="mano">
-			</div>
-		</div>
-			<hr>
-		<slot />
-	</main>
+  <main>
+    <div class="imagecontainer">
+      <div class="titleimages">
+        <img
+          src="/images/mano6.png"
+          class="crop-image"
+          decoding="async"
+          loading="lazy"
+          alt="mano"
+        />
+        <img
+          src="/images/mano0.png"
+          class="crop-image"
+          decoding="async"
+          loading="lazy"
+          alt="mano"
+        />
+        <img
+          src="/images/mano2.png"
+          class="crop-image"
+          decoding="async"
+          loading="lazy"
+          alt="mano"
+        />
+        <img
+          src="/images/mano1.png"
+          class="crop-image"
+          decoding="async"
+          loading="lazy"
+          alt="mano"
+        />
+        <img
+          src="/images/mano3.png"
+          class="crop-image"
+          decoding="async"
+          loading="lazy"
+          alt="mano"
+        />
+        <img
+          src="/images/mano4(1).png"
+          class="crop-image"
+          decoding="async"
+          loading="lazy"
+          alt="mano"
+        />
+        <img
+          src="/images/mano5.png"
+          class="crop-image"
+          decoding="async"
+          loading="lazy"
+          alt="mano"
+        />
+      </div>
+    </div>
+    <hr />
+    <slot />
+  </main>
 </Default>
 
 <style>
-	.crop-image:nth-child(1) {
-  filter: grayscale(50%);
-}
+  .crop-image:nth-child(1) {
+    filter: grayscale(50%);
+  }
 
-.crop-image:nth-child(2) {
-  filter: sepia(0%);
-}
+  .crop-image:nth-child(2) {
+    filter: sepia(0%);
+  }
 
-.crop-image:nth-child(3) {
-  filter: hue-rotate(90deg);
-}
+  .crop-image:nth-child(3) {
+    filter: hue-rotate(90deg);
+  }
 
-.crop-image:nth-child(4) {
-  filter: contrast(110%);
-}
+  .crop-image:nth-child(4) {
+    filter: contrast(110%);
+  }
 
-.crop-image:nth-child(5) {
-  filter: saturate(2);
-}
+  .crop-image:nth-child(5) {
+    filter: saturate(2);
+  }
 
-.crop-image:nth-child(6) {
-  filter: brightness(1) invert(0.1) contrast(1.2);
-}
+  .crop-image:nth-child(6) {
+    filter: brightness(1) invert(0.1) contrast(1.2);
+  }
 
-.crop-image:nth-child(7) {
-  filter: invert(1);
-}
+  .crop-image:nth-child(7) {
+    filter: invert(1);
+  }
 
-p {
-	font-size: 1.5rem;
-  line-height: 1.5;
-  margin: 0 0 1.5rem 0;
-}
+  p {
+    font-size: 1.5rem;
+    line-height: 1.5;
+    margin: 0 0 1.5rem 0;
+  }
 </style>

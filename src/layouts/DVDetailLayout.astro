@@ -12,17 +12,19 @@ const previous = `/devlog/${data.project}`;
 const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 const newpubDate = new Date(data.date);
-const formattedDate = `ctime ${Math.floor(newpubDate.getTime() / 1000).toString(16)} ${dayNames[newpubDate.getDay()]} ${newpubDate.toLocaleString("default", {
-	month: "short",
+const formattedDate = `ctime ${Math.floor(newpubDate.getTime() / 1000).toString(
+  16,
+)} ${dayNames[newpubDate.getDay()]} ${newpubDate.toLocaleString("default", {
+  month: "short",
 })} ${newpubDate.getDate()}, ${newpubDate.getFullYear()}`;
 ---
 
 <Default title={data.title}>
-	<main>
-		<BackButton title={data.project} href={previous} />
-		<h1 class="title text-gradient">/devlog/{id}</h1>
-		<sub class="subheading">{formattedDate}</sub>
-		<hr>
-		<slot />
-	</main>
+  <main>
+    <BackButton title={data.project} href={previous} />
+    <h1 class="title text-gradient">/devlog/{id}</h1>
+    <sub class="date-subheading">{formattedDate}</sub>
+    <hr />
+    <slot />
+  </main>
 </Default>
