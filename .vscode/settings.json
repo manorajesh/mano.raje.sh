@@ -1,5 +1,3 @@
 {
-  "files.associations": {
-    "*.mdx": "markdown"
-  }
+  "rust-analyzer.linkedProjects": ["./backend/Cargo.toml"]
 }

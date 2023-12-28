@@ -1,0 +1,9 @@
+FROM rust as builder
+WORKDIR /usr/src/mano-raje-sh
+COPY backend/Cargo.toml backend/Cargo.lock ./
+COPY backend/src ./src
+RUN cargo build --release
+
+FROM debian:buster-slim
+COPY --from=builder /usr/src/mano-raje-sh/target/release/backend /usr/local/bin/backend
+CMD ["backend"]
