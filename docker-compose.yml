@@ -14,15 +14,8 @@ services:
       dockerfile: Dockerfile.backend
     ports:
       - "8080:8080"
-
-  db:
-    image: postgres:latest
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - sqlite_data:backend/db/production.db
 
 volumes:
-  postgres_data:
+  sqlite_data:
