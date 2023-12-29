@@ -1,3 +1,4 @@
+use log::info;
 use serde_json::{ self, Value as JsonValue };
 use serde::{ Serialize, Deserialize };
 use rusqlite::{ Connection, Result };
@@ -9,13 +10,16 @@ use uuid::Uuid;
 pub type DbPool = Pool<SqliteConnectionManager>;
 
 pub fn init_pool(db_url: &str) -> Result<DbPool, Box<dyn Error>> {
+    info!("Initializing database pool");
     let manager = SqliteConnectionManager::file(db_url);
     let pool = Pool::new(manager)?;
 
     // Initialize the database with tables
+    info!("Initializing database tables");
     let conn = pool.get()?;
     create_tables(&conn)?;
 
+    info!("Database pool initialized");
     Ok(pool)
 }
 
