@@ -26,7 +26,9 @@ export default function BallPool() {
       Render = Matter.Render,
       Runner = Matter.Runner,
       Bodies = Matter.Bodies,
-      Composite = Matter.Composite;
+      Composite = Matter.Composite,
+      MouseConstraint = Matter.MouseConstraint,
+      Mouse = Matter.Mouse;
 
     // create an engine
     var engine = Engine.create();
@@ -59,22 +61,34 @@ export default function BallPool() {
         console.error("Error calculating pattern coordinates:", error);
       });
 
-    // create a ground
-    let ground = Bodies.rectangle(
-      windowSize.width / 2,
-      windowSize.height,
-      windowSize.width,
-      60,
-      {
-        isStatic: true,
-        render: {
-          fillStyle: "#ffffff",
+    // add mouse control
+    var mouse = Mouse.create(render.canvas),
+      mouseConstraint = MouseConstraint.create(engine, {
+        mouse: mouse,
+        constraint: {
+          stiffness: 0.1,
+          render: {
+            visible: false,
+          },
         },
-      }
-    );
+      });
 
-    // add all of the bodies to the world
-    Composite.add(engine.world, [ground]);
+    Composite.add(engine.world, mouseConstraint);
+
+    // create a ground
+    // let ground = Bodies.rectangle(
+    //   windowSize.width / 2,
+    //   windowSize.height,
+    //   windowSize.width,
+    //   60,
+    //   {
+    //     isStatic: true,
+    //     render: {
+    //       fillStyle: "#ffffff",
+    //     },
+    //   }
+    // );
+    // Composite.add(engine.world, [ground]);
 
     // run the renderer
     Render.run(render);
