@@ -36,7 +36,6 @@ export default function BallPool() {
       Runner = Matter.Runner,
       Bodies = Matter.Bodies,
       Composite = Matter.Composite,
-      MouseConstraint = Matter.MouseConstraint,
       Mouse = Matter.Mouse,
       Body = Matter.Body,
       Events = Matter.Events;
@@ -93,8 +92,8 @@ export default function BallPool() {
       }
 
       Body.setVelocity(body, {
-        x: 50,
-        y: 50,
+        x: 25,
+        y: 25,
       });
 
       Body.setPosition(body, {

@@ -1,5 +1,6 @@
 import React from "react";
 import BallPool from "./BallPool";
+import { TypeAnimation } from "react-type-animation";
 
 function App() {
   return (
@@ -13,14 +14,25 @@ function App() {
 
           <div>
             <p className="text-lg">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris
-              vitae mattis risus. Suspendisse eu scelerisque nunc, faucibus
-              auctor ante. Morbi hendrerit auctor fermentum. Curabitur porta
-              ultrices malesuada. In fringilla elementum pellentesque. Nunc
-              viverra at ex non dapibus. In eget ex at leo ultrices tempus.
-              Fusce id urna et turpis vehicula condimentum eget a ligula. Nam
-              porta condimentum leo at faucibus. In commodo nisi ut aliquet
-              placerat. Mauris consectetur viverra sapien eget iaculis.
+              I'm Mano,{" "}
+              <TypeAnimation
+                sequence={[
+                  "an engineer and artist.",
+                  2000,
+                  "an artist and engineer.",
+                  2000,
+                ]}
+                wrapper="span"
+                speed={25}
+                repeat={Infinity}
+                deletionSpeed={15}
+                className="text-lg bg-[conic-gradient(at_top,_var(--tw-gradient-stops))] to-slate-500 from-white text-transparent bg-clip-text"
+              />
+            </p>
+
+            <p className="text-lg pt-3">
+              You can find my code on GitHub and my art here or on ArtStation if
+              you prefer. I've also written down some thoughts here.
             </p>
           </div>
         </div>
