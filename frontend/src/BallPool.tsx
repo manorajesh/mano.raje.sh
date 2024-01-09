@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import Matter from "matter-js";
-import { isVisible } from "@testing-library/user-event/dist/utils";
 
 export default function BallPool() {
   const [windowSize, setWindowSize] = useState({
@@ -60,8 +59,8 @@ export default function BallPool() {
 
     // Normalize radius and spacing based on the smaller dimension of window size
     const smallerDimension = Math.min(windowSize.width, windowSize.height);
-    const radius = Math.round(smallerDimension / 100);
-    const spacing = Math.round(smallerDimension / 60);
+    const radius = Math.round(smallerDimension / 90);
+    const spacing = Math.round(smallerDimension / 50);
 
     calculatePatternCoordinatesFromImage(
       "mano0.png",
@@ -201,6 +200,6 @@ function createBall(x: number, y: number, radius: number, color: string) {
       fillStyle: color,
     },
     friction: 0.0,
-    frictionAir: 0.0001,
+    frictionAir: 0.0,
   });
 }
