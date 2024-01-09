@@ -1,5 +1,39 @@
 import React, { useEffect, useState } from "react";
 import Matter from "matter-js";
+import * as PIXI from "pixi.js";
+import { Stage, Graphics, useTick } from "@pixi/react";
+
+interface BallProps {
+  ballState: BallState;
+}
+
+type BallState = {
+  body: Matter.Body;
+  color: string;
+  radius: number;
+};
+
+const Ball = ({ ballState }: BallProps) => {
+  const [position, setPosition] = useState({
+    x: ballState.body.position.x,
+    y: ballState.body.position.y,
+  });
+
+  useTick(() => {
+    setPosition({ x: ballState.body.position.x, y: ballState.body.position.y });
+  });
+
+  return (
+    <Graphics
+      draw={(g) => {
+        g.clear();
+        g.beginFill(PIXI.utils.string2hex(ballState.color));
+        g.drawCircle(position.x, position.y, ballState.radius);
+        g.endFill();
+      }}
+    />
+  );
+};
 
 export default function BallPool() {
   const [windowSize, setWindowSize] = useState({
@@ -7,14 +41,7 @@ export default function BallPool() {
     height: window.innerHeight,
   });
 
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [showLoadingScreen, setShowLoadingScreen] = useState(true);
-
-  useEffect(() => {
-    if (isLoaded) {
-      setTimeout(() => setShowLoadingScreen(false), 100); // Adjust delay as needed
-    }
-  }, [isLoaded]);
+  const [balls, setBalls] = useState<BallState[]>([]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -30,36 +57,23 @@ export default function BallPool() {
   }, []);
 
   useEffect(() => {
-    // module aliases
     var Engine = Matter.Engine,
-      Render = Matter.Render,
       Runner = Matter.Runner,
-      Bodies = Matter.Bodies,
-      Composite = Matter.Composite,
       Mouse = Matter.Mouse,
+      Composite = Matter.Composite,
+      Bodies = Matter.Bodies,
       Body = Matter.Body,
       Events = Matter.Events;
 
-    // create an engine
-    var engine = Engine.create();
+    const engine = Engine.create();
     engine.gravity.y = 0; // Disable gravity
-
-    // Create a renderer
-    let render = Matter.Render.create({
-      element: document.getElementById("simulation-container") ?? undefined,
-      engine: engine,
-      options: {
-        width: windowSize.width,
-        height: windowSize.height,
-        wireframes: false,
-        background: "transparent",
-      },
-    });
 
     // Normalize radius and spacing based on the smaller dimension of window size
     const smallerDimension = Math.min(windowSize.width, windowSize.height);
     const radius = Math.round(smallerDimension / 90);
     const spacing = Math.round(smallerDimension / 50);
+
+    const initialBalls: BallState[] = [];
 
     calculatePatternCoordinatesFromImage(
       "mano0.png",
@@ -71,13 +85,21 @@ export default function BallPool() {
         patternCoords.forEach((coord) => {
           let ball = createBall(coord.x, coord.y, radius, coord.color);
           Composite.add(engine.world, [ball]);
+
+          initialBalls.push({
+            body: ball,
+            color: coord.color,
+            radius: radius,
+          });
         });
+
+        setBalls(initialBalls);
       })
       .catch((error) => {
-        console.error("Error calculating pattern coordinates:", error);
+        console.error(error);
       });
 
-    var mouse = Mouse.create(render.canvas);
+    var mouse = Mouse.create(document.getElementById("simulation-container")!);
     var body = Bodies.rectangle(0, 0, 5, 5, {
       isStatic: true,
       render: {
@@ -102,39 +124,29 @@ export default function BallPool() {
       });
     });
 
-    // run the renderer
-    Render.run(render);
-
     // create runner
     var runner = Runner.create();
 
     // run the engine
     Runner.run(runner, engine);
 
-    setIsLoaded(true);
-
     return () => {
       // Cleanup on component unmount
-      Render.stop(render);
       Engine.clear(engine);
       Runner.stop(runner);
-      render.canvas.remove();
-      render.textures = {};
     };
   }, [windowSize]);
 
   return (
-    <div>
-      <div
-        className={`absolute top-0 left-0 w-full h-full flex justify-center items-center bg-black transition-opacity duration-500 z-20 pointer-events-none ${
-          showLoadingScreen ? "opacity-100" : "opacity-0"
-        }`}
-      ></div>
-
-      <div
-        id="simulation-container"
-        className="w-full h-full absolute t-0 l-0 z-10"
-      ></div>
+    <div
+      id="simulation-container"
+      className="w-full h-full absolute t-0 l-0 z-10"
+    >
+      <Stage width={window.innerWidth} height={window.innerHeight}>
+        {balls.map((ball, index) => (
+          <Ball key={index} ballState={ball} />
+        ))}
+      </Stage>
     </div>
   );
 }
@@ -195,9 +207,6 @@ function calculatePatternCoordinatesFromImage(
 function createBall(x: number, y: number, radius: number, color: string) {
   return Matter.Bodies.circle(x, y, radius, {
     restitution: 0.9,
-    render: {
-      fillStyle: color,
-    },
     friction: 0.0,
     frictionAir: 0.0,
   });
