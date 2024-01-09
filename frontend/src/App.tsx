@@ -12,7 +12,7 @@ function App() {
           </div>
 
           <div>
-            <p className="text-base">
+            <p className="text-lg">
               Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris
               vitae mattis risus. Suspendisse eu scelerisque nunc, faucibus
               auctor ante. Morbi hendrerit auctor fermentum. Curabitur porta

@@ -60,8 +60,8 @@ export default function BallPool() {
 
     // Normalize radius and spacing based on the smaller dimension of window size
     const smallerDimension = Math.min(windowSize.width, windowSize.height);
-    const radius = Math.round(smallerDimension / 100); // Adjust divisor for desired size
-    const spacing = Math.round(smallerDimension / 50); // Adjust divisor for desired spacing
+    const radius = Math.round(smallerDimension / 100);
+    const spacing = Math.round(smallerDimension / 60);
 
     calculatePatternCoordinatesFromImage(
       "mano0.png",
@@ -79,22 +79,13 @@ export default function BallPool() {
         console.error("Error calculating pattern coordinates:", error);
       });
 
-    // add mouse control
-    // var mouse = Mouse.create(render.canvas);
-    //   mouseConstraint = MouseConstraint.create(engine, {
-    //     mouse: mouse,
-    //     constraint: {
-    //       stiffness: 0.98,
-    //       render: {
-    //         visible: false,
-    //       },
-    //     },
-    //   });
-
-    // Composite.add(engine.world, mouseConstraint);
-
     var mouse = Mouse.create(render.canvas);
-    var body = Bodies.rectangle(0, 0, 10, 10, { isStatic: true });
+    var body = Bodies.rectangle(0, 0, 5, 5, {
+      isStatic: true,
+      render: {
+        visible: false,
+      },
+    });
     Composite.add(engine.world, body);
 
     Events.on(engine, "afterUpdate", function () {
