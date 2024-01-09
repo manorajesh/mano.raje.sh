@@ -1,11 +1,21 @@
 import React, { useEffect, useState } from "react";
 import Matter from "matter-js";
+import { isVisible } from "@testing-library/user-event/dist/utils";
 
 export default function BallPool() {
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
   });
+
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [showLoadingScreen, setShowLoadingScreen] = useState(true);
+
+  useEffect(() => {
+    if (isLoaded) {
+      setTimeout(() => setShowLoadingScreen(false), 100); // Adjust delay as needed
+    }
+  }, [isLoaded]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -28,7 +38,9 @@ export default function BallPool() {
       Bodies = Matter.Bodies,
       Composite = Matter.Composite,
       MouseConstraint = Matter.MouseConstraint,
-      Mouse = Matter.Mouse;
+      Mouse = Matter.Mouse,
+      Body = Matter.Body,
+      Events = Matter.Events;
 
     // create an engine
     var engine = Engine.create();
@@ -42,18 +54,24 @@ export default function BallPool() {
         width: windowSize.width,
         height: windowSize.height,
         wireframes: false,
+        background: "transparent",
       },
     });
+
+    // Normalize radius and spacing based on the smaller dimension of window size
+    const smallerDimension = Math.min(windowSize.width, windowSize.height);
+    const radius = Math.round(smallerDimension / 100); // Adjust divisor for desired size
+    const spacing = Math.round(smallerDimension / 50); // Adjust divisor for desired spacing
 
     calculatePatternCoordinatesFromImage(
       "mano0.png",
       windowSize.width,
       windowSize.height,
-      25
+      spacing
     )
       .then((patternCoords) => {
         patternCoords.forEach((coord) => {
-          let ball = createBall(coord.x, coord.y, 10, coord.color); // Modify radius and other properties as needed
+          let ball = createBall(coord.x, coord.y, radius, coord.color);
           Composite.add(engine.world, [ball]);
         });
       })
@@ -62,33 +80,38 @@ export default function BallPool() {
       });
 
     // add mouse control
-    var mouse = Mouse.create(render.canvas),
-      mouseConstraint = MouseConstraint.create(engine, {
-        mouse: mouse,
-        constraint: {
-          stiffness: 0.1,
-          render: {
-            visible: false,
-          },
-        },
+    // var mouse = Mouse.create(render.canvas);
+    //   mouseConstraint = MouseConstraint.create(engine, {
+    //     mouse: mouse,
+    //     constraint: {
+    //       stiffness: 0.98,
+    //       render: {
+    //         visible: false,
+    //       },
+    //     },
+    //   });
+
+    // Composite.add(engine.world, mouseConstraint);
+
+    var mouse = Mouse.create(render.canvas);
+    var body = Bodies.rectangle(0, 0, 10, 10, { isStatic: true });
+    Composite.add(engine.world, body);
+
+    Events.on(engine, "afterUpdate", function () {
+      if (!mouse.position.x) {
+        return;
+      }
+
+      Body.setVelocity(body, {
+        x: 50,
+        y: 50,
       });
 
-    Composite.add(engine.world, mouseConstraint);
-
-    // create a ground
-    // let ground = Bodies.rectangle(
-    //   windowSize.width / 2,
-    //   windowSize.height,
-    //   windowSize.width,
-    //   60,
-    //   {
-    //     isStatic: true,
-    //     render: {
-    //       fillStyle: "#ffffff",
-    //     },
-    //   }
-    // );
-    // Composite.add(engine.world, [ground]);
+      Body.setPosition(body, {
+        x: mouse.position.x,
+        y: mouse.position.y,
+      });
+    });
 
     // run the renderer
     Render.run(render);
@@ -99,16 +122,32 @@ export default function BallPool() {
     // run the engine
     Runner.run(runner, engine);
 
+    setIsLoaded(true);
+
     return () => {
       // Cleanup on component unmount
       Render.stop(render);
       Engine.clear(engine);
+      Runner.stop(runner);
       render.canvas.remove();
       render.textures = {};
     };
   }, [windowSize]);
 
-  return <div id="simulation-container" className="w-full h-full"></div>;
+  return (
+    <div>
+      <div
+        className={`absolute top-0 left-0 w-full h-full flex justify-center items-center bg-black transition-opacity duration-500 z-20 pointer-events-none ${
+          showLoadingScreen ? "opacity-100" : "opacity-0"
+        }`}
+      ></div>
+
+      <div
+        id="simulation-container"
+        className="w-full h-full absolute t-0 l-0 z-10"
+      ></div>
+    </div>
+  );
 }
 
 type PatternCoordinate = {
@@ -132,16 +171,23 @@ function calculatePatternCoordinatesFromImage(
     image.src = imageUrl;
 
     image.onload = () => {
-      ctx?.drawImage(image, 0, 0, width, height);
+      // Calculate the scale factor to fit the image within the specified width
+      const scaleFactor = width / image.width;
+      const scaledHeight = image.height * scaleFactor;
+
+      // Draw and tile the image vertically
+      for (let y = 0; y < canvas.height; y += scaledHeight) {
+        ctx?.drawImage(image, 0, y, width, scaledHeight);
+      }
+
       const imageData = ctx?.getImageData(0, 0, width, height);
       let coordinates: PatternCoordinate[] = [];
 
       for (let y = 0; y < (imageData?.height ?? 0); y += spacing) {
         for (let x = 0; x < (imageData?.width ?? 0); x += spacing) {
           const index = (y * (imageData?.width ?? 0) + x) * 4;
-          const alpha = imageData?.data[index + 3];
-          if (alpha ?? 0 > 0) {
-            // Get the color of the pixel
+          const alpha = imageData?.data[index + 3] ?? 0;
+          if (alpha > 0) {
             const color = `rgb(${imageData?.data[index]}, ${
               imageData?.data[index + 1]
             }, ${imageData?.data[index + 2]})`;
@@ -163,5 +209,7 @@ function createBall(x: number, y: number, radius: number, color: string) {
     render: {
       fillStyle: color,
     },
+    friction: 0.0,
+    frictionAir: 0.0001,
   });
 }
