@@ -53,6 +53,7 @@ export default function BallPool() {
 
     const engine = Matter.Engine.create({ gravity: { y: 0 } });
     engine.timing.timeScale = 0.5;
+    engine.enableSleeping = true;
 
     const app = new PIXI.Application<HTMLCanvasElement>({
       width: windowSize.width,
@@ -99,7 +100,7 @@ export default function BallPool() {
       });
 
     var mouse = Mouse.create(sceneContainer);
-    var body = Bodies.rectangle(0, 0, 5, 5, {
+    var body = Bodies.rectangle(0, 0, 10, 10, {
       isStatic: true,
       render: {
         visible: false,
@@ -208,7 +209,7 @@ function calculatePatternCoordinatesFromImage(
 
 function createBall(x: number, y: number, radius: number) {
   return Matter.Bodies.circle(x, y, radius, {
-    restitution: 0.9,
+    restitution: 0.8,
     friction: 0.0,
     frictionAir: 0.0,
   });
