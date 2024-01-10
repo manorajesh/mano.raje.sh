@@ -1,7 +1,6 @@
 import React, { useEffect, useReducer, useRef, useState } from "react";
 import Matter from "matter-js";
 import * as PIXI from "pixi.js";
-import { Stage, Graphics, useTick } from "@pixi/react";
 
 type BallState = {
   body: Matter.Body;
@@ -14,19 +13,11 @@ declare module "matter-js" {
   }
 }
 
-declare module "pixi.js" {
-  interface IApplicationOptions {
-    transparent?: boolean;
-  }
-}
-
 export default function BallPool() {
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
   });
-
-  const appRef = useRef<number | null>(null);
 
   useEffect(() => {
     const handleResize = () => {
@@ -141,7 +132,6 @@ export default function BallPool() {
       // Cleanup on component unmount
       Engine.clear(engine);
       Runner.stop(runner);
-      cancelAnimationFrame(appRef.current!);
       app.destroy(true);
     };
   }, [windowSize]);
