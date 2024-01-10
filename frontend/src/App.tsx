@@ -6,7 +6,7 @@ function App() {
   return (
     <div>
       <BallPool />
-      {/* <div className="flex justify-center items-center min-h-screen font-sans bg-dark-blue p-6">
+      <div className="flex justify-center items-center min-h-screen font-sans bg-dark-blue p-6">
         <div className="text-white max-w-prose">
           <div className="text-left text-5xl pb-6">
             <h1>hello</h1>
@@ -36,7 +36,7 @@ function App() {
             </p>
           </div>
         </div>
-      </div> */}
+      </div>
     </div>
   );
 }

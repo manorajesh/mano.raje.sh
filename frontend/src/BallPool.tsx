@@ -1,39 +1,24 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useReducer, useRef, useState } from "react";
 import Matter from "matter-js";
 import * as PIXI from "pixi.js";
 import { Stage, Graphics, useTick } from "@pixi/react";
 
-interface BallProps {
-  ballState: BallState;
-}
-
 type BallState = {
   body: Matter.Body;
   color: string;
-  radius: number;
 };
 
-const Ball = ({ ballState }: BallProps) => {
-  const [position, setPosition] = useState({
-    x: ballState.body.position.x,
-    y: ballState.body.position.y,
-  });
+declare module "matter-js" {
+  interface Body {
+    sprite?: PIXI.Sprite;
+  }
+}
 
-  useTick(() => {
-    setPosition({ x: ballState.body.position.x, y: ballState.body.position.y });
-  });
-
-  return (
-    <Graphics
-      draw={(g) => {
-        g.clear();
-        g.beginFill(PIXI.utils.string2hex(ballState.color));
-        g.drawCircle(position.x, position.y, ballState.radius);
-        g.endFill();
-      }}
-    />
-  );
-};
+declare module "pixi.js" {
+  interface IApplicationOptions {
+    transparent?: boolean;
+  }
+}
 
 export default function BallPool() {
   const [windowSize, setWindowSize] = useState({
@@ -41,7 +26,7 @@ export default function BallPool() {
     height: window.innerHeight,
   });
 
-  const [balls, setBalls] = useState<BallState[]>([]);
+  const appRef = useRef<number | null>(null);
 
   useEffect(() => {
     const handleResize = () => {
@@ -52,28 +37,40 @@ export default function BallPool() {
     };
 
     window.addEventListener("resize", handleResize);
-
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   useEffect(() => {
     var Engine = Matter.Engine,
       Runner = Matter.Runner,
-      Mouse = Matter.Mouse,
       Composite = Matter.Composite,
+      Mouse = Matter.Mouse,
       Bodies = Matter.Bodies,
       Body = Matter.Body,
       Events = Matter.Events;
 
-    const engine = Engine.create();
-    engine.gravity.y = 0; // Disable gravity
+    var sceneContainer = document.getElementById("simulation-container")!;
+
+    const engine = Matter.Engine.create({ gravity: { y: 0 } });
+    engine.timing.timeScale = 0.5;
+
+    const app = new PIXI.Application<HTMLCanvasElement>({
+      width: windowSize.width,
+      height: windowSize.height,
+      antialias: true,
+      forceCanvas: false,
+      backgroundAlpha: 0,
+    });
+    const stage = app.stage;
+    const particles = new PIXI.ParticleContainer(10000);
+    stage.addChild(particles as any);
+
+    sceneContainer.appendChild(app.view);
 
     // Normalize radius and spacing based on the smaller dimension of window size
     const smallerDimension = Math.min(windowSize.width, windowSize.height);
-    const radius = Math.round(smallerDimension / 90);
+    const radius = Math.round(smallerDimension / 100);
     const spacing = Math.round(smallerDimension / 50);
-
-    const initialBalls: BallState[] = [];
 
     calculatePatternCoordinatesFromImage(
       "mano0.png",
@@ -83,23 +80,25 @@ export default function BallPool() {
     )
       .then((patternCoords) => {
         patternCoords.forEach((coord) => {
-          let ball = createBall(coord.x, coord.y, radius, coord.color);
+          let ball = createBall(coord.x, coord.y, radius);
           Composite.add(engine.world, [ball]);
 
-          initialBalls.push({
-            body: ball,
-            color: coord.color,
-            radius: radius,
-          });
-        });
+          const texture = PIXI.Texture.from("circle-sprite.png"); // Use your texture
+          const sprite = new PIXI.Sprite(texture);
+          sprite.position.set(coord.x, coord.y);
+          sprite.tint = PIXI.utils.string2hex(coord.color);
+          sprite.scale.set(radius / 45);
+          particles.addChild(sprite);
 
-        setBalls(initialBalls);
+          // Store the sprite in Matter.js body for easy access
+          ball.sprite = sprite;
+        });
       })
       .catch((error) => {
         console.error(error);
       });
 
-    var mouse = Mouse.create(document.getElementById("simulation-container")!);
+    var mouse = Mouse.create(sceneContainer);
     var body = Bodies.rectangle(0, 0, 5, 5, {
       isStatic: true,
       render: {
@@ -126,14 +125,23 @@ export default function BallPool() {
 
     // create runner
     var runner = Runner.create();
-
-    // run the engine
     Runner.run(runner, engine);
+
+    app.ticker.add(() => {
+      // Update sprite positions to match Matter.js bodies
+      Composite.allBodies(engine.world).forEach((body) => {
+        if (body.sprite) {
+          body.sprite.position.set(body.position.x, body.position.y);
+        }
+      });
+    });
 
     return () => {
       // Cleanup on component unmount
       Engine.clear(engine);
       Runner.stop(runner);
+      cancelAnimationFrame(appRef.current!);
+      app.destroy(true);
     };
   }, [windowSize]);
 
@@ -141,13 +149,7 @@ export default function BallPool() {
     <div
       id="simulation-container"
       className="w-full h-full absolute t-0 l-0 z-10"
-    >
-      <Stage width={window.innerWidth} height={window.innerHeight}>
-        {balls.map((ball, index) => (
-          <Ball key={index} ballState={ball} />
-        ))}
-      </Stage>
-    </div>
+    />
   );
 }
 
@@ -204,7 +206,7 @@ function calculatePatternCoordinatesFromImage(
   });
 }
 
-function createBall(x: number, y: number, radius: number, color: string) {
+function createBall(x: number, y: number, radius: number) {
   return Matter.Bodies.circle(x, y, radius, {
     restitution: 0.9,
     friction: 0.0,
