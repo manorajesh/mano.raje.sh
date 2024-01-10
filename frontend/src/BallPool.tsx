@@ -1,11 +1,6 @@
-import React, { useEffect, useReducer, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Matter from "matter-js";
 import * as PIXI from "pixi.js";
-
-type BallState = {
-  body: Matter.Body;
-  color: string;
-};
 
 declare module "matter-js" {
   interface Body {
