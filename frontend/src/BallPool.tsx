@@ -28,7 +28,6 @@ export default function BallPool() {
 
   useEffect(() => {
     var Engine = Matter.Engine,
-      Runner = Matter.Runner,
       Composite = Matter.Composite,
       Mouse = Matter.Mouse,
       Bodies = Matter.Bodies,
@@ -38,8 +37,7 @@ export default function BallPool() {
     var sceneContainer = document.getElementById("simulation-container")!;
 
     const engine = Matter.Engine.create({ gravity: { y: 0 } });
-    engine.timing.timeScale = 0.5;
-    engine.enableSleeping = true;
+    // engine.timing.timeScale = 0.5;
 
     const app = new PIXI.Application<HTMLCanvasElement>({
       width: windowSize.width,
@@ -110,23 +108,21 @@ export default function BallPool() {
       });
     });
 
-    // create runner
-    var runner = Runner.create();
-    Runner.run(runner, engine);
-
-    app.ticker.add(() => {
+    app.ticker.add((delta) => {
       // Update sprite positions to match Matter.js bodies
       Composite.allBodies(engine.world).forEach((body) => {
         if (body.sprite) {
           body.sprite.position.set(body.position.x, body.position.y);
         }
       });
+
+      // Update the physics engine
+      Engine.update(engine, delta * (1000 / 60));
     });
 
     return () => {
       // Cleanup on component unmount
       Engine.clear(engine);
-      Runner.stop(runner);
       app.destroy(true);
     };
   }, [windowSize]);
