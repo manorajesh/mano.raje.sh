@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import Matter from "matter-js";
 import * as PIXI from "pixi.js";
+import { MousePositionContext } from "./MousePosition";
 
 declare module "matter-js" {
   interface Body {
@@ -9,6 +10,10 @@ declare module "matter-js" {
 }
 
 export default function BallPool() {
+  const mousePosition = useContext(MousePositionContext);
+  const mouseBodyRef = useRef<Matter.Body | null>(null);
+  const appRef = useRef<PIXI.Application<HTMLCanvasElement> | null>(null);
+
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -16,15 +21,33 @@ export default function BallPool() {
 
   useEffect(() => {
     const handleResize = () => {
-      setWindowSize({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
+      // setWindowSize({
+      //   width: window.innerWidth,
+      //   height: window.innerHeight,
+      // });
+
+      if (appRef.current) {
+        appRef.current.renderer.resize(window.innerWidth, window.innerHeight);
+      }
     };
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  useEffect(() => {
+    if (mouseBodyRef.current) {
+      Matter.Body.setPosition(mouseBodyRef.current, {
+        x: mousePosition.x,
+        y: mousePosition.y,
+      });
+
+      Matter.Body.setVelocity(mouseBodyRef.current, {
+        x: 25,
+        y: 25,
+      });
+    }
+  }, [mousePosition]);
 
   useEffect(() => {
     var Engine = Matter.Engine,
@@ -49,6 +72,8 @@ export default function BallPool() {
     const stage = app.stage;
     const particles = new PIXI.ParticleContainer(10000);
     stage.addChild(particles as any);
+
+    appRef.current = app;
 
     sceneContainer.appendChild(app.view);
 
@@ -90,6 +115,7 @@ export default function BallPool() {
         visible: false,
       },
     });
+    mouseBodyRef.current = body;
     Composite.add(engine.world, body);
 
     Events.on(engine, "afterUpdate", function () {
@@ -130,7 +156,7 @@ export default function BallPool() {
   return (
     <div
       id="simulation-container"
-      className="w-full h-full absolute t-0 l-0 z-10"
+      className="w-full h-full absolute t-0 l-0 z-10 pointer-events-none"
     />
   );
 }
