@@ -5,3 +5,8 @@
 body {
   overflow: hidden;
 }
+
+a {
+  color: rgb(255, 255, 255);
+  text-decoration: wavy underline rgb(52, 74, 146);
+}

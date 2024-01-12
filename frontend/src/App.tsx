@@ -33,8 +33,11 @@ function App() {
               </p>
 
               <p className="text-lg pt-3">
-                You can find my code on GitHub and my art here or on ArtStation
-                if you prefer. I've also written down some thoughts here.
+                You can find my <a href="https://github.com/manorajesh">code</a>{" "}
+                on GitHub and my art <a href="">here</a> (or on{" "}
+                <a href="https://www.artstation.com/manorajesh">ArtStation</a>{" "}
+                if you prefer). I've also written down some thoughts{" "}
+                <a href="">here</a>.
               </p>
             </div>
           </div>
