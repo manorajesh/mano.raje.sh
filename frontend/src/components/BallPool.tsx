@@ -70,7 +70,7 @@ export default function BallPool() {
       backgroundAlpha: 0,
     });
     const stage = app.stage;
-    const particles = new PIXI.ParticleContainer(10000);
+    const particles = new PIXI.ParticleContainer(9000);
     stage.addChild(particles as any);
 
     appRef.current = app;
@@ -80,7 +80,7 @@ export default function BallPool() {
     // Normalize radius and spacing based on the smaller dimension of window size
     const smallerDimension = Math.min(windowSize.width, windowSize.height);
     const radius = Math.round(smallerDimension / 100);
-    const spacing = Math.round(smallerDimension / 50);
+    const spacing = Math.round(smallerDimension / 45);
 
     calculatePatternCoordinatesFromImage(
       "mano0.png",
@@ -99,6 +99,7 @@ export default function BallPool() {
           sprite.tint = PIXI.utils.string2hex(coord.color);
           sprite.scale.set(radius / 45);
           particles.addChild(sprite);
+          sprite.cullable = true;
 
           // Store the sprite in Matter.js body for easy access
           ball.sprite = sprite;
@@ -143,7 +144,7 @@ export default function BallPool() {
       });
 
       // Update the physics engine
-      Engine.update(engine, delta * (1000 / 60));
+      Engine.update(engine, delta * 1000);
     });
 
     return () => {
