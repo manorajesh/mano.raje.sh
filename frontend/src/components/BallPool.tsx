@@ -96,10 +96,10 @@ export default function BallPool() {
           const texture = PIXI.Texture.from("circle-sprite.png"); // Use your texture
           const sprite = new PIXI.Sprite(texture);
           sprite.position.set(coord.x, coord.y);
-          sprite.tint = PIXI.utils.string2hex(coord.color);
+          sprite.tint = PIXI.Color.shared.setValue(coord.color).toHex();
           sprite.scale.set(radius / 45);
-          particles.addChild(sprite);
           sprite.cullable = true;
+          particles.addChild(sprite);
 
           // Store the sprite in Matter.js body for easy access
           ball.sprite = sprite;
