@@ -16,6 +16,7 @@ export default function BallPool() {
   const mouseBodyRef = useRef<Matter.Body | null>(null);
   const appRef = useRef<PIXI.Application<HTMLCanvasElement> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showLoadingScreen, setShowLoadingScreen] = useState(true);
 
   const windowSize = useMemo(() => {
     return {
@@ -41,6 +42,13 @@ export default function BallPool() {
   }, []);
 
   useEffect(() => {
+    // minimum time to show loading screen to prevent flashing
+    if (showLoadingScreen) {
+      setTimeout(() => {
+        setShowLoadingScreen(false);
+      }, 500);
+    }
+
     if (mouseBodyRef.current) {
       Matter.Body.setPosition(mouseBodyRef.current, {
         x: mousePosition.x,
@@ -151,7 +159,7 @@ export default function BallPool() {
       <div
         className="w-full h-full absolute t-0 l-0 flex justify-center items-center z-20 bg-black pointer-events-none"
         style={{
-          opacity: isLoading ? 1 : 0,
+          opacity: isLoading || showLoadingScreen ? 1 : 0,
           transitionProperty: "opacity",
           transitionDuration: "0.25s",
         }}
