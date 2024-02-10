@@ -15,10 +15,10 @@ export default function BallPool() {
   const appRef = useRef<PIXI.Application<HTMLCanvasElement> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const [windowSize, setWindowSize] = useState({
+  const windowSize = {
     width: window.innerWidth,
     height: window.innerHeight,
-  });
+  };
 
   useEffect(() => {
     const handleResize = () => {

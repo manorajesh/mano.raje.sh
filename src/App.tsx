@@ -36,7 +36,7 @@ function App() {
                 You can find my <a href="https://github.com/manorajesh">code</a>{" "}
                 on GitHub and my art on{" "}
                 <a href="https://www.artstation.com/manorajesh">ArtStation</a>{" "}
-                (for now). I'll write down some thoughts <a href="">here</a> in
+                (for now). I'll write down some thoughts <a href="/">here</a> in
                 a bit.
               </p>
             </div>
