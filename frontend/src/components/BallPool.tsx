@@ -13,6 +13,7 @@ export default function BallPool() {
   const mousePosition = useContext(MousePositionContext);
   const mouseBodyRef = useRef<Matter.Body | null>(null);
   const appRef = useRef<PIXI.Application<HTMLCanvasElement> | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
@@ -147,6 +148,10 @@ export default function BallPool() {
       Engine.update(engine, delta * 1000);
     });
 
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 100);
+
     return () => {
       // Cleanup on component unmount
       Engine.clear(engine);
@@ -155,10 +160,22 @@ export default function BallPool() {
   }, [windowSize]);
 
   return (
-    <div
-      id="simulation-container"
-      className="w-full h-full absolute t-0 l-0 z-10 pointer-events-none"
-    />
+    <>
+      <div
+        className="w-full h-full absolute t-0 l-0 flex justify-center items-center z-20 bg-black pointer-events-none"
+        style={{
+          opacity: isLoading ? 1 : 0,
+          transitionProperty: "opacity",
+          transitionDuration: "0.25s",
+        }}
+      >
+        <p className="text-white">(👉ﾟヮﾟ)👉</p>
+      </div>
+      <div
+        id="simulation-container"
+        className="w-full h-full absolute t-0 l-0 z-10 pointer-events-none"
+      />
+    </>
   );
 }
 
