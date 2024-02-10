@@ -10,7 +10,7 @@ function App() {
         <BallPool />
         <div className="flex justify-center items-center min-h-screen font-sans bg-dark-blue p-6">
           <div className="text-white max-w-prose">
-            <div className="text-left text-5xl pb-6">
+            <div className="text-left text-5xl pb-6 font-serif italic">
               <h1>hello</h1>
             </div>
 
