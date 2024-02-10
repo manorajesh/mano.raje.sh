@@ -2,7 +2,7 @@
 
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
-Personal website and microblog for myself
+Personal website and microblog for myself. This is just the frontend for an ongoing webserver project. The frontend is deployed via Cloudflare Pages.
 
 ## Development
 
