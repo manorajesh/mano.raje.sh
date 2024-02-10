@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import Matter from "matter-js";
 import * as PIXI from "pixi.js";
 import { MousePositionContext } from "./MousePosition";
@@ -9,16 +9,20 @@ declare module "matter-js" {
   }
 }
 
+const VELOCITY_SCALE = 10;
+
 export default function BallPool() {
   const mousePosition = useContext(MousePositionContext);
   const mouseBodyRef = useRef<Matter.Body | null>(null);
   const appRef = useRef<PIXI.Application<HTMLCanvasElement> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const windowSize = {
-    width: window.innerWidth,
-    height: window.innerHeight,
-  };
+  const windowSize = useMemo(() => {
+    return {
+      width: window.innerWidth,
+      height: window.innerHeight,
+    };
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -44,8 +48,8 @@ export default function BallPool() {
       });
 
       Matter.Body.setVelocity(mouseBodyRef.current, {
-        x: 25,
-        y: 25,
+        x: mousePosition.vx * VELOCITY_SCALE,
+        y: mousePosition.vy * VELOCITY_SCALE,
       });
     }
   }, [mousePosition]);
@@ -110,8 +114,7 @@ export default function BallPool() {
         console.error(error);
       });
 
-    var mouse = Mouse.create(sceneContainer);
-    var body = Bodies.rectangle(0, 0, 10, 10, {
+    var body = Bodies.rectangle(0, 0, 5, 5, {
       isStatic: true,
       render: {
         visible: false,
@@ -119,22 +122,6 @@ export default function BallPool() {
     });
     mouseBodyRef.current = body;
     Composite.add(engine.world, body);
-
-    Events.on(engine, "afterUpdate", function () {
-      if (!mouse.position.x) {
-        return;
-      }
-
-      Body.setVelocity(body, {
-        x: 25,
-        y: 25,
-      });
-
-      Body.setPosition(body, {
-        x: mouse.position.x,
-        y: mouse.position.y,
-      });
-    });
 
     app.ticker.add((delta) => {
       // Update sprite positions to match Matter.js bodies
