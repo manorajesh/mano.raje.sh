@@ -9,7 +9,7 @@ declare module "matter-js" {
   }
 }
 
-const VELOCITY_SCALE = 10;
+const VELOCITY_SCALE = 15;
 
 export default function BallPool() {
   const mousePosition = useContext(MousePositionContext);
@@ -24,6 +24,13 @@ export default function BallPool() {
       height: window.innerHeight,
     };
   }, []);
+
+  // minimum time to show loading screen to prevent flashing
+  if (showLoadingScreen) {
+    setTimeout(() => {
+      setShowLoadingScreen(false);
+    }, 500);
+  }
 
   useEffect(() => {
     const handleResize = () => {
@@ -42,13 +49,6 @@ export default function BallPool() {
   }, []);
 
   useEffect(() => {
-    // minimum time to show loading screen to prevent flashing
-    if (showLoadingScreen) {
-      setTimeout(() => {
-        setShowLoadingScreen(false);
-      }, 500);
-    }
-
     if (mouseBodyRef.current) {
       Matter.Body.setPosition(mouseBodyRef.current, {
         x: mousePosition.x,
@@ -65,10 +65,7 @@ export default function BallPool() {
   useEffect(() => {
     var Engine = Matter.Engine,
       Composite = Matter.Composite,
-      Mouse = Matter.Mouse,
-      Bodies = Matter.Bodies,
-      Body = Matter.Body,
-      Events = Matter.Events;
+      Bodies = Matter.Bodies;
 
     var sceneContainer = document.getElementById("simulation-container")!;
 
