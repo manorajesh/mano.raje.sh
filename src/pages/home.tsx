@@ -1,16 +1,16 @@
 import React from "react";
-import BallPool from "./components/BallPool";
+import BallPool from "../components/BallPool";
 import { TypeAnimation } from "react-type-animation";
-import { MousePositionProvider } from "./components/MousePosition";
+import { MousePositionProvider } from "../components/MousePosition";
 
-function App() {
+function Home() {
   return (
     <MousePositionProvider>
       <div>
         <BallPool />
-        <div className="flex justify-center items-center min-h-screen font-sans bg-dark-blue p-6">
-          <div className="text-white max-w-prose">
-            <div className="text-left text-5xl pb-6 font-serif italic">
+        <div className="bg-dark-blue flex min-h-screen items-center justify-center p-6 font-sans">
+          <div className="max-w-prose text-white">
+            <div className="pb-6 text-left font-serif text-5xl italic">
               <h1>hello</h1>
             </div>
 
@@ -28,11 +28,11 @@ function App() {
                   speed={25}
                   repeat={Infinity}
                   deletionSpeed={15}
-                  className="text-lg bg-[conic-gradient(at_top,_var(--tw-gradient-stops))] to-slate-500 from-white text-transparent bg-clip-text"
+                  className="bg-[conic-gradient(at_top,_var(--tw-gradient-stops))] from-white to-slate-500 bg-clip-text text-lg text-transparent"
                 />
               </p>
 
-              <p className="text-lg pt-3">
+              <p className="pt-3 text-lg">
                 You can find my <a href="https://github.com/manorajesh">code</a>{" "}
                 on GitHub and my art on{" "}
                 <a href="https://www.artstation.com/manorajesh">ArtStation</a>{" "}
@@ -47,4 +47,4 @@ function App() {
   );
 }
 
-export default App;
+export default Home;
