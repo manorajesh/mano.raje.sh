@@ -10,7 +10,7 @@ Personal website and microblog for myself. This is just the frontend for an ongo
 npm run start
 ```
 
-This will start the frontend in development mode. The frontend will be served on port `3000``.
+This will start the frontend in development mode. The frontend will be served on port `3000`.
 
 > [!NOTE]  
 > This will open the website to the public.
