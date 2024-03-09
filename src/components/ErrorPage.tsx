@@ -42,6 +42,7 @@ export function ErrorPage({ errorNumber }: Props) {
           fontFamily: "serif",
           fontStyle: "italic",
           color: "gray",
+          zIndex: 1, // The error h1 is absolute, so it's on top of this link
         }}
       >
         &laquo; back to safety
