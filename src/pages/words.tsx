@@ -70,8 +70,16 @@ function Words() {
       <div className="bg-dark-blue flex min-h-screen items-center justify-center p-6 font-sans">
         <div className="max-w-prose text-white max-h-[100vh] overflow-y-auto pr-2 no-scrollbar">
           <div className="pb-6 text-left font-serif text-5xl italic">
-            <h1>GitHub Code Snippets</h1>
+            <h1>// what the fuck?</h1>
           </div>
+
+          <div className="pb-6 text-left font-serif text-1xl">
+            <h2 className="text-gray-400">
+              /* peculiar and vulgar code on github */
+            </h2>
+          </div>
+
+          <hr className="pb-6 text-gray-100" />
 
           {snippets.length === 0 && (
             <div className="flex items-center justify-center h-screen">
