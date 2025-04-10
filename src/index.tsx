@@ -28,7 +28,7 @@ const router = createBrowserRouter([
     element: <Hindi />,
   },
   {
-    path: "/words",
+    path: "/peculiar-code",
     element: <Words />,
   },
   {
