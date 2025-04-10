@@ -8,6 +8,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Ideas from "./pages/ideas";
 import Now from "./pages/now";
 import Hindi from "./pages/hindi";
+import Words from "./pages/words";
 
 const router = createBrowserRouter([
   {
@@ -25,6 +26,10 @@ const router = createBrowserRouter([
   {
     path: "/hindi",
     element: <Hindi />,
+  },
+  {
+    path: "/words",
+    element: <Words />,
   },
   {
     path: "*",
