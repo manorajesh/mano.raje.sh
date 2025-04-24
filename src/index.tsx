@@ -9,6 +9,7 @@ import Ideas from "./pages/ideas";
 import Now from "./pages/now";
 import Hindi from "./pages/hindi";
 import Words from "./pages/words";
+import WordleVisualizerPage from "./pages/wordle-visualizer";
 
 const router = createBrowserRouter([
   {
@@ -30,6 +31,10 @@ const router = createBrowserRouter([
   {
     path: "/peculiar-code",
     element: <Words />,
+  },
+  {
+    path: "/wordle",
+    element: <WordleVisualizerPage />,
   },
   {
     path: "*",
