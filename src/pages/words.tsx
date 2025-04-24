@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import data from "../data/snippets3.json";
+import data from "../data/snippets5.json";
 
 interface Match {
   text: string;
