@@ -7,7 +7,6 @@ import reportWebVitals from "./reportWebVitals";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Ideas from "./pages/ideas";
 import Now from "./pages/now";
-import Hindi from "./pages/hindi";
 import Words from "./pages/words";
 import WordleVisualizerPage from "./pages/wordle-visualizer";
 
@@ -23,10 +22,6 @@ const router = createBrowserRouter([
   {
     path: "/now",
     element: <Now />,
-  },
-  {
-    path: "/hindi",
-    element: <Hindi />,
   },
   {
     path: "/peculiar-code",
