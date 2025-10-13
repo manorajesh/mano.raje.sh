@@ -10,6 +10,7 @@ import Now from "./pages/now";
 import Hindi from "./pages/hindi";
 import Words from "./pages/words";
 import WordleVisualizerPage from "./pages/wordle-visualizer";
+import LetterBoxd from "./pages/letterboxd";
 
 const router = createBrowserRouter([
   {
@@ -35,6 +36,10 @@ const router = createBrowserRouter([
   {
     path: "/wordle",
     element: <WordleVisualizerPage />,
+  },
+  {
+    path: "/letterboxd",
+    element: <LetterBoxd />,
   },
   {
     path: "*",
