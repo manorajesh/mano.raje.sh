@@ -1,0 +1,851 @@
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  Character,
+  GameState,
+  Achievement,
+} from "../types/script-learning";
+import {
+  SCRIPT_CONFIGS,
+  getScriptConfig,
+  getAvailableScripts,
+} from "../config/scripts";
+import { getScriptData } from "../utils/script-data";
+import {
+  getCharacterDisplay,
+  generateCombinations,
+  filterByDifficulty,
+  getProgressStorageKey,
+} from "../utils/script-utils";
+
+const ACHIEVEMENTS: Achievement[] = [
+  {
+    id: "first_correct",
+    name: "First Step",
+    description: "Get your first answer correct",
+    unlocked: false,
+    icon: "🎯",
+  },
+  {
+    id: "streak_5",
+    name: "On Fire",
+    description: "Get 5 correct answers in a row",
+    unlocked: false,
+    icon: "🔥",
+  },
+  {
+    id: "streak_10",
+    name: "Unstoppable",
+    description: "Get 10 correct answers in a row",
+    unlocked: false,
+    icon: "⚡",
+  },
+  {
+    id: "character_master",
+    name: "Character Master",
+    description: "Complete 25 character questions",
+    unlocked: false,
+    icon: "🌟",
+  },
+  {
+    id: "word_master",
+    name: "Word Master",
+    description: "Complete 50 word/phrase questions",
+    unlocked: false,
+    icon: "💫",
+  },
+  {
+    id: "speed_demon",
+    name: "Speed Demon",
+    description: "Answer 20 questions in rapid fire mode",
+    unlocked: false,
+    icon: "🚀",
+  },
+  {
+    id: "perfectionist",
+    name: "Perfectionist",
+    description: "Achieve 100% accuracy over 10 questions",
+    unlocked: false,
+    icon: "✨",
+  },
+];
+
+const ScriptLearning: React.FC = () => {
+  const [gameState, setGameState] = useState<GameState>({
+    currentCard: null,
+    score: 0,
+    streak: 0,
+    bestStreak: 0,
+    totalAnswered: 0,
+    correctAnswers: 0,
+    showAnswer: false,
+    gameMode: "multiple-choice",
+    category: "vowels",
+    difficulty: "beginner",
+    rapidFire: false,
+    achievements: ACHIEVEMENTS,
+    sessionStats: {},
+    selectedScript: "devanagari",
+  });
+
+  const [userInput, setUserInput] = useState("");
+  const [multipleChoiceOptions, setMultipleChoiceOptions] = useState<string[]>(
+    []
+  );
+  const [feedback, setFeedback] = useState<{
+    type: "correct" | "incorrect" | null;
+    message: string;
+  }>({ type: null, message: "" });
+  const [showAchievement, setShowAchievement] = useState<Achievement | null>(
+    null
+  );
+  const [animationClass, setAnimationClass] = useState("");
+
+  // Get current script configuration and data
+  const currentConfig = getScriptConfig(gameState.selectedScript);
+  const currentData = getScriptData(gameState.selectedScript);
+
+  // Load saved progress from localStorage
+  useEffect(() => {
+    const storageKey = getProgressStorageKey(gameState.selectedScript);
+    const savedProgress = localStorage.getItem(storageKey);
+    if (savedProgress) {
+      try {
+        const parsed = JSON.parse(savedProgress);
+        setGameState((prev) => ({
+          ...prev,
+          score: parsed.score || 0,
+          bestStreak: parsed.bestStreak || 0,
+          totalAnswered: parsed.totalAnswered || 0,
+          correctAnswers: parsed.correctAnswers || 0,
+          achievements: parsed.achievements || ACHIEVEMENTS,
+        }));
+      } catch (e) {
+        console.error("Failed to load saved progress:", e);
+      }
+    }
+  }, [gameState.selectedScript]);
+
+  // Save progress to localStorage
+  const saveProgress = useCallback((newState: GameState) => {
+    const storageKey = getProgressStorageKey(newState.selectedScript);
+    const progressData = {
+      score: newState.score,
+      bestStreak: newState.bestStreak,
+      totalAnswered: newState.totalAnswered,
+      correctAnswers: newState.correctAnswers,
+      achievements: newState.achievements,
+    };
+    localStorage.setItem(storageKey, JSON.stringify(progressData));
+  }, []);
+
+  // Check and unlock achievements
+  const checkAchievements = useCallback((newState: GameState) => {
+    const updatedAchievements = [...newState.achievements];
+    let newAchievement: Achievement | null = null;
+
+    updatedAchievements.forEach((achievement) => {
+      if (achievement.unlocked) return;
+
+      switch (achievement.id) {
+        case "first_correct":
+          if (newState.correctAnswers >= 1) {
+            achievement.unlocked = true;
+            newAchievement = achievement;
+          }
+          break;
+        case "streak_5":
+          if (newState.streak >= 5) {
+            achievement.unlocked = true;
+            newAchievement = achievement;
+          }
+          break;
+        case "streak_10":
+          if (newState.streak >= 10) {
+            achievement.unlocked = true;
+            newAchievement = achievement;
+          }
+          break;
+        case "character_master":
+          const characterCount =
+            (newState.sessionStats.vowels || 0) +
+            (newState.sessionStats.consonants || 0) +
+            (newState.sessionStats.letters || 0);
+          if (characterCount >= 25) {
+            achievement.unlocked = true;
+            newAchievement = achievement;
+          }
+          break;
+        case "word_master":
+          const wordCount =
+            (newState.sessionStats.words || 0) +
+            (newState.sessionStats.phrases || 0);
+          if (wordCount >= 50) {
+            achievement.unlocked = true;
+            newAchievement = achievement;
+          }
+          break;
+        case "speed_demon":
+          if ((newState.sessionStats.rapidFireCount || 0) >= 20) {
+            achievement.unlocked = true;
+            newAchievement = achievement;
+          }
+          break;
+        case "perfectionist":
+          if (
+            newState.totalAnswered >= 10 &&
+            newState.correctAnswers / newState.totalAnswered === 1
+          ) {
+            achievement.unlocked = true;
+            newAchievement = achievement;
+          }
+          break;
+      }
+    });
+
+    if (newAchievement) {
+      setShowAchievement(newAchievement);
+      setTimeout(() => setShowAchievement(null), 4000);
+    }
+
+    return updatedAchievements;
+  }, []);
+
+  // Generate combinations for scripts that support it
+  const generateScriptCombinations = useCallback(() => {
+    if (!currentConfig.specialFeatures?.generateCombinations) {
+      return [];
+    }
+
+    if (currentConfig.name === "devanagari") {
+      const consonants = currentData.consonants || [];
+      const matras = (currentData.matras || []).filter(
+        (m: any) => m.type === "matra"
+      );
+      return generateCombinations(consonants, matras, currentConfig);
+    }
+
+    return [];
+  }, [currentConfig, currentData]);
+
+  // Get available characters based on category and difficulty
+  const getAvailableCharacters = useCallback(() => {
+    let characters: Character[] = [];
+    const categories = Object.keys(currentConfig.categories);
+
+    if (gameState.category === "all") {
+      // Combine all categories
+      categories.forEach((category) => {
+        if (category !== "all" && currentData[category]) {
+          characters = [...characters, ...currentData[category]];
+        }
+      });
+
+      // Add combinations if supported
+      if (
+        currentConfig.specialFeatures?.generateCombinations &&
+        gameState.difficulty !== "beginner"
+      ) {
+        characters = [...characters, ...generateScriptCombinations()];
+      }
+    } else if (currentData[gameState.category]) {
+      characters = [...currentData[gameState.category]];
+
+      // For matra/diacritic categories, generate combinations in non-beginner modes
+      if (
+        (gameState.category === "matras" ||
+          gameState.category === "diacritics") &&
+        gameState.difficulty !== "beginner" &&
+        currentConfig.specialFeatures?.generateCombinations
+      ) {
+        characters = [...generateScriptCombinations()];
+      }
+    }
+
+    // Filter by difficulty
+    characters = filterByDifficulty(characters, gameState.difficulty);
+
+    return characters;
+  }, [
+    gameState.category,
+    gameState.difficulty,
+    currentConfig,
+    currentData,
+    generateScriptCombinations,
+  ]);
+
+  // Generate random card
+  const generateNewCard = useCallback(() => {
+    const availableChars = getAvailableCharacters();
+    if (availableChars.length === 0) return;
+
+    const randomIndex = Math.floor(Math.random() * availableChars.length);
+    const newCard = availableChars[randomIndex];
+
+    setGameState((prev) => ({
+      ...prev,
+      currentCard: newCard,
+      showAnswer: false,
+    }));
+    setUserInput("");
+    setFeedback({ type: null, message: "" });
+
+    // Generate multiple choice options if needed
+    if (gameState.gameMode === "multiple-choice") {
+      generateMultipleChoiceOptions(newCard, availableChars);
+    }
+  }, [gameState.gameMode, getAvailableCharacters]);
+
+  // Generate multiple choice options
+  const generateMultipleChoiceOptions = (
+    correctCard: Character,
+    allChars: Character[]
+  ) => {
+    const options = [correctCard.romanization];
+    const otherChars = allChars.filter(
+      (char) => char.romanization !== correctCard.romanization
+    );
+
+    while (options.length < 4 && otherChars.length > 0) {
+      const randomIndex = Math.floor(Math.random() * otherChars.length);
+      const randomChar = otherChars.splice(randomIndex, 1)[0];
+      if (!options.includes(randomChar.romanization)) {
+        options.push(randomChar.romanization);
+      }
+    }
+
+    // Shuffle options
+    for (let i = options.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [options[i], options[j]] = [options[j], options[i]];
+    }
+
+    setMultipleChoiceOptions(options);
+  };
+
+  // Handle answer submission
+  const handleAnswer = useCallback((answer: string) => {
+    if (!gameState.currentCard) return;
+
+    const isCorrect =
+      answer.toLowerCase().trim() ===
+      gameState.currentCard.romanization.toLowerCase();
+
+    setGameState((prev) => {
+      const newStreak = isCorrect ? prev.streak + 1 : 0;
+      const newSessionStats = { ...prev.sessionStats };
+
+      // Update session stats
+      if (gameState.rapidFire) {
+        newSessionStats.rapidFireCount =
+          (newSessionStats.rapidFireCount || 0) + 1;
+      }
+
+      // Track different types based on current card type
+      const cardType = prev.currentCard?.type;
+      if (cardType) {
+        newSessionStats[cardType] = (newSessionStats[cardType] || 0) + 1;
+      }
+
+      const newState = {
+        ...prev,
+        totalAnswered: prev.totalAnswered + 1,
+        correctAnswers: prev.correctAnswers + (isCorrect ? 1 : 0),
+        streak: newStreak,
+        bestStreak: Math.max(prev.bestStreak, newStreak),
+        score: prev.score + (isCorrect ? (prev.streak + 1) * 10 : 0),
+        showAnswer: true,
+        sessionStats: newSessionStats,
+        achievements: checkAchievements({
+          ...prev,
+          totalAnswered: prev.totalAnswered + 1,
+          correctAnswers: prev.correctAnswers + (isCorrect ? 1 : 0),
+          streak: newStreak,
+          sessionStats: newSessionStats,
+        } as GameState),
+      };
+
+      saveProgress(newState);
+      return newState;
+    });
+
+    // Animation feedback
+    setAnimationClass(isCorrect ? "animate-bounce" : "animate-pulse");
+    setTimeout(() => setAnimationClass(""), 1000);
+
+    setFeedback({
+      type: isCorrect ? "correct" : "incorrect",
+      message: isCorrect
+        ? `Correct! ${
+            gameState.currentCard.meaning
+              ? `(${gameState.currentCard.meaning})`
+              : ""
+          }`
+        : `Incorrect. The answer is "${gameState.currentCard.romanization}" ${
+            gameState.currentCard.meaning
+              ? `(${gameState.currentCard.meaning})`
+              : ""
+          }`,
+    });
+
+    // Auto-advance in rapid fire mode
+    if (gameState.rapidFire && isCorrect) {
+      setTimeout(() => {
+        generateNewCard();
+      }, 1000);
+    }
+  }, [gameState.currentCard, gameState.rapidFire, checkAchievements, saveProgress, generateNewCard]);
+
+  // Handle typed input submission
+  const handleTypedSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleAnswer(userInput);
+  };
+
+  // Handle script change
+  const handleScriptChange = (newScript: string) => {
+    const newConfig = getScriptConfig(newScript);
+    const firstCategory = Object.keys(newConfig.categories)[0];
+
+    setGameState((prev) => ({
+      ...prev,
+      selectedScript: newScript,
+      category: firstCategory,
+      currentCard: null,
+      showAnswer: false,
+    }));
+  };
+
+  // Initialize game
+  useEffect(() => {
+    generateNewCard();
+  }, [generateNewCard]);
+
+  // Reset game when script changes
+  useEffect(() => {
+    generateNewCard();
+  }, [gameState.selectedScript, generateNewCard]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey || event.metaKey) return;
+
+      switch (event.key) {
+        case "Enter":
+          if (gameState.showAnswer && !gameState.rapidFire) {
+            generateNewCard();
+          }
+          break;
+        case " ":
+          event.preventDefault();
+          if (gameState.gameMode === "flashcard" && !gameState.showAnswer) {
+            setGameState((prev) => ({ ...prev, showAnswer: true }));
+          }
+          break;
+        case "1":
+        case "2":
+        case "3":
+        case "4":
+          if (
+            gameState.gameMode === "multiple-choice" &&
+            !gameState.showAnswer
+          ) {
+            const optionIndex = parseInt(event.key) - 1;
+            if (multipleChoiceOptions[optionIndex]) {
+              handleAnswer(multipleChoiceOptions[optionIndex]);
+            }
+          }
+          break;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [
+    gameState.showAnswer,
+    gameState.gameMode,
+    gameState.rapidFire,
+    multipleChoiceOptions,
+    generateNewCard,
+    handleAnswer,
+  ]);
+
+  // Calculate accuracy
+  const accuracy =
+    gameState.totalAnswered > 0
+      ? Math.round((gameState.correctAnswers / gameState.totalAnswered) * 100)
+      : 0;
+
+  // Get available categories for current script
+  const availableCategories = Object.entries(currentConfig.categories);
+
+  return (
+    <div
+      className="min-h-screen bg-dark-blue text-white p-6 font-sans relative"
+      style={{ direction: currentConfig.direction }}
+    >
+      {/* Achievement Notification */}
+      {showAchievement && (
+        <div className="fixed top-4 right-4 z-50 bg-gradient-to-r from-yellow-400 to-orange-500 text-black p-4 rounded-lg shadow-xl animate-bounce">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">{showAchievement.icon}</span>
+            <div>
+              <div className="font-bold">Achievement Unlocked!</div>
+              <div className="text-sm">{showAchievement.name}</div>
+              <div className="text-xs opacity-75">
+                {showAchievement.description}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-5xl font-serif italic mb-4 bg-[conic-gradient(at_top,_var(--tw-gradient-stops))] from-white to-slate-500 bg-clip-text text-transparent">
+            script learning
+          </h1>
+          <p className="text-lg text-gray-300">
+            master the {currentConfig.displayName} script • one character at a
+            time
+          </p>
+          <div className="mt-2 text-sm text-gray-400">
+            Use keyboard shortcuts: Enter (next), Space (reveal), 1-4 (multiple
+            choice)
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+          <div className="bg-gray-800/50 rounded-lg p-4 text-center border border-gray-700">
+            <div className="text-2xl font-bold text-teal-400">
+              {gameState.score}
+            </div>
+            <div className="text-sm text-gray-400">score</div>
+          </div>
+          <div className="bg-gray-800/50 rounded-lg p-4 text-center border border-gray-700">
+            <div className="text-2xl font-bold text-orange-400">
+              {gameState.streak}
+            </div>
+            <div className="text-sm text-gray-400">streak</div>
+          </div>
+          <div className="bg-gray-800/50 rounded-lg p-4 text-center border border-gray-700">
+            <div className="text-2xl font-bold text-purple-400">
+              {gameState.bestStreak}
+            </div>
+            <div className="text-sm text-gray-400">best</div>
+          </div>
+          <div className="bg-gray-800/50 rounded-lg p-4 text-center border border-gray-700">
+            <div className="text-2xl font-bold text-green-400">{accuracy}%</div>
+            <div className="text-sm text-gray-400">accuracy</div>
+          </div>
+          <div className="bg-gray-800/50 rounded-lg p-4 text-center border border-gray-700">
+            <div className="text-2xl font-bold text-blue-400">
+              {gameState.totalAnswered}
+            </div>
+            <div className="text-sm text-gray-400">answered</div>
+          </div>
+        </div>
+
+        {/* Achievements Progress */}
+        <div className="mb-8 bg-gray-800/30 rounded-lg p-4 border border-gray-700">
+          <h3 className="text-lg font-semibold mb-3 text-gray-200">
+            Achievements
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
+            {gameState.achievements.map((achievement) => (
+              <div
+                key={achievement.id}
+                className={`p-2 rounded-lg text-center transition-all ${
+                  achievement.unlocked
+                    ? "bg-gradient-to-br from-yellow-400/20 to-orange-500/20 border border-yellow-400/50"
+                    : "bg-gray-700/50 border border-gray-600"
+                }`}
+                title={achievement.description}
+              >
+                <div
+                  className={`text-2xl ${
+                    achievement.unlocked ? "" : "grayscale opacity-50"
+                  }`}
+                >
+                  {achievement.icon}
+                </div>
+                <div
+                  className={`text-xs mt-1 ${
+                    achievement.unlocked ? "text-yellow-300" : "text-gray-500"
+                  }`}
+                >
+                  {achievement.name}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Controls */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <div>
+            <label className="block text-sm font-medium mb-2">Script</label>
+            <select
+              value={gameState.selectedScript}
+              onChange={(e) => handleScriptChange(e.target.value)}
+              className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white"
+            >
+              {getAvailableScripts().map((script) => (
+                <option key={script} value={script}>
+                  {SCRIPT_CONFIGS[script].displayName}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Game Mode</label>
+            <select
+              value={gameState.gameMode}
+              onChange={(e) =>
+                setGameState((prev) => ({
+                  ...prev,
+                  gameMode: e.target.value as any,
+                }))
+              }
+              className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white"
+            >
+              <option value="multiple-choice">Multiple Choice</option>
+              <option value="typed-input">Type Answer</option>
+              <option value="flashcard">Flashcard</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Category</label>
+            <select
+              value={gameState.category}
+              onChange={(e) =>
+                setGameState((prev) => ({
+                  ...prev,
+                  category: e.target.value,
+                }))
+              }
+              className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white"
+            >
+              {availableCategories.map(([key, config]) => (
+                <option key={key} value={key}>
+                  {config.displayName}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Difficulty</label>
+            <select
+              value={gameState.difficulty}
+              onChange={(e) =>
+                setGameState((prev) => ({
+                  ...prev,
+                  difficulty: e.target.value as any,
+                }))
+              }
+              className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white"
+            >
+              <option value="beginner">Beginner</option>
+              <option value="intermediate">Intermediate</option>
+              <option value="advanced">Advanced</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Rapid Fire Toggle */}
+        <div className="flex items-center justify-center mb-8">
+          <label className="flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={gameState.rapidFire}
+              onChange={(e) =>
+                setGameState((prev) => ({
+                  ...prev,
+                  rapidFire: e.target.checked,
+                }))
+              }
+              className="sr-only"
+            />
+            <div
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                gameState.rapidFire ? "bg-teal-500" : "bg-gray-600"
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  gameState.rapidFire ? "translate-x-6" : "translate-x-1"
+                }`}
+              />
+            </div>
+            <span className="ml-3 text-sm font-medium">Rapid Fire Mode 🔥</span>
+          </label>
+        </div>
+
+        {/* Main Game Card */}
+        {gameState.currentCard && (
+          <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 rounded-2xl p-8 mb-8 border border-gray-600 backdrop-blur-sm">
+            <div className="text-center">
+              {/* Character Display */}
+              <div
+                className={`text-8xl md:text-9xl font-serif mb-6 text-transparent bg-gradient-to-r from-teal-400 via-purple-400 to-orange-400 bg-clip-text ${animationClass}`}
+                style={{ direction: currentConfig.direction }}
+              >
+                {getCharacterDisplay(gameState.currentCard, currentConfig)}
+              </div>
+
+              {/* Feedback */}
+              {feedback.type && (
+                <div
+                  className={`mb-6 p-4 rounded-lg ${
+                    feedback.type === "correct"
+                      ? "bg-green-500/20 border border-green-500"
+                      : "bg-red-500/20 border border-red-500"
+                  }`}
+                >
+                  <p
+                    className={`text-lg ${
+                      feedback.type === "correct"
+                        ? "text-green-400"
+                        : "text-red-400"
+                    }`}
+                  >
+                    {feedback.message}
+                  </p>
+                </div>
+              )}
+
+              {/* Game Mode Specific UI */}
+              {gameState.gameMode === "multiple-choice" &&
+                !gameState.showAnswer && (
+                  <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
+                    {multipleChoiceOptions.map((option, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleAnswer(option)}
+                        className="bg-gray-700 hover:bg-gray-600 border border-gray-500 rounded-lg py-3 px-6 text-lg font-medium transition-all duration-200 hover:scale-105 hover:border-teal-400 relative"
+                      >
+                        <span className="absolute top-1 right-2 text-xs text-gray-400">
+                          {index + 1}
+                        </span>
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+              {gameState.gameMode === "typed-input" &&
+                !gameState.showAnswer && (
+                  <form
+                    onSubmit={handleTypedSubmit}
+                    className="max-w-md mx-auto"
+                  >
+                    <input
+                      type="text"
+                      value={userInput}
+                      onChange={(e) => setUserInput(e.target.value)}
+                      placeholder="Type the romanization..."
+                      className="w-full bg-gray-700 border border-gray-500 rounded-lg py-3 px-4 text-lg text-center focus:outline-none focus:border-teal-400 mb-4"
+                      autoFocus
+                    />
+                    <button
+                      type="submit"
+                      className="w-full bg-teal-600 hover:bg-teal-500 rounded-lg py-3 px-6 text-lg font-medium transition-colors"
+                    >
+                      Submit
+                    </button>
+                  </form>
+                )}
+
+              {gameState.gameMode === "flashcard" && (
+                <div className="max-w-md mx-auto">
+                  {!gameState.showAnswer ? (
+                    <div>
+                      <button
+                        onClick={() =>
+                          setGameState((prev) => ({
+                            ...prev,
+                            showAnswer: true,
+                          }))
+                        }
+                        className="bg-purple-600 hover:bg-purple-500 rounded-lg py-3 px-8 text-lg font-medium transition-colors"
+                      >
+                        Reveal Answer
+                      </button>
+                      <p className="text-sm text-gray-400 mt-2">
+                        Press Space to reveal
+                      </p>
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="text-2xl mb-4 text-teal-400">
+                        {gameState.currentCard.romanization}
+                      </p>
+                      {gameState.currentCard.meaning && (
+                        <p className="text-lg mb-6 text-gray-300">
+                          ({gameState.currentCard.meaning})
+                        </p>
+                      )}
+                      <div className="flex gap-4 justify-center">
+                        <button
+                          onClick={() => handleAnswer("")}
+                          className="bg-red-600 hover:bg-red-500 rounded-lg py-2 px-6 text-lg font-medium transition-colors"
+                        >
+                          ❌ Hard
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleAnswer(gameState.currentCard!.romanization)
+                          }
+                          className="bg-green-600 hover:bg-green-500 rounded-lg py-2 px-6 text-lg font-medium transition-colors"
+                        >
+                          ✅ Easy
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Next Button */}
+              {gameState.showAnswer && !gameState.rapidFire && (
+                <button
+                  onClick={generateNewCard}
+                  className="mt-6 bg-gradient-to-r from-teal-500 to-purple-500 hover:from-teal-400 hover:to-purple-400 rounded-lg py-3 px-8 text-lg font-medium transition-all duration-200 hover:scale-105"
+                >
+                  Next Card →
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Reset Button */}
+        <div className="text-center">
+          <button
+            onClick={() => {
+              setGameState((prev) => ({
+                ...prev,
+                score: 0,
+                streak: 0,
+                totalAnswered: 0,
+                correctAnswers: 0,
+                showAnswer: false,
+              }));
+              generateNewCard();
+            }}
+            className="bg-gray-700 hover:bg-gray-600 border border-gray-500 rounded-lg py-2 px-6 text-sm font-medium transition-colors"
+          >
+            Reset Game
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ScriptLearning;

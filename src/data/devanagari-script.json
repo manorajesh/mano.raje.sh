@@ -1,0 +1,163 @@
+{
+  "vowels": [
+    { "devanagari": "अ", "romanization": "a", "type": "vowel" },
+    { "devanagari": "आ", "romanization": "aa", "type": "vowel" },
+    { "devanagari": "इ", "romanization": "i", "type": "vowel" },
+    { "devanagari": "ई", "romanization": "ii", "type": "vowel" },
+    { "devanagari": "उ", "romanization": "u", "type": "vowel" },
+    { "devanagari": "ऊ", "romanization": "uu", "type": "vowel" },
+    { "devanagari": "ऋ", "romanization": "ri", "type": "vowel" },
+    { "devanagari": "ए", "romanization": "e", "type": "vowel" },
+    { "devanagari": "ऐ", "romanization": "ai", "type": "vowel" },
+    { "devanagari": "ओ", "romanization": "o", "type": "vowel" },
+    { "devanagari": "औ", "romanization": "au", "type": "vowel" }
+  ],
+  "consonants": [
+    { "devanagari": "क", "romanization": "ka", "type": "consonant" },
+    { "devanagari": "ख", "romanization": "kha", "type": "consonant" },
+    { "devanagari": "ग", "romanization": "ga", "type": "consonant" },
+    { "devanagari": "घ", "romanization": "gha", "type": "consonant" },
+    { "devanagari": "ङ", "romanization": "nga", "type": "consonant" },
+    { "devanagari": "च", "romanization": "cha", "type": "consonant" },
+    { "devanagari": "छ", "romanization": "chha", "type": "consonant" },
+    { "devanagari": "ज", "romanization": "ja", "type": "consonant" },
+    { "devanagari": "झ", "romanization": "jha", "type": "consonant" },
+    { "devanagari": "ञ", "romanization": "nya", "type": "consonant" },
+    { "devanagari": "ट", "romanization": "ta", "type": "consonant" },
+    { "devanagari": "ठ", "romanization": "tha", "type": "consonant" },
+    { "devanagari": "ड", "romanization": "da", "type": "consonant" },
+    { "devanagari": "ढ", "romanization": "dha", "type": "consonant" },
+    { "devanagari": "ण", "romanization": "na", "type": "consonant" },
+    { "devanagari": "त", "romanization": "ta", "type": "consonant" },
+    { "devanagari": "थ", "romanization": "tha", "type": "consonant" },
+    { "devanagari": "द", "romanization": "da", "type": "consonant" },
+    { "devanagari": "ध", "romanization": "dha", "type": "consonant" },
+    { "devanagari": "न", "romanization": "na", "type": "consonant" },
+    { "devanagari": "प", "romanization": "pa", "type": "consonant" },
+    { "devanagari": "फ", "romanization": "pha", "type": "consonant" },
+    { "devanagari": "ब", "romanization": "ba", "type": "consonant" },
+    { "devanagari": "भ", "romanization": "bha", "type": "consonant" },
+    { "devanagari": "म", "romanization": "ma", "type": "consonant" },
+    { "devanagari": "य", "romanization": "ya", "type": "consonant" },
+    { "devanagari": "र", "romanization": "ra", "type": "consonant" },
+    { "devanagari": "ल", "romanization": "la", "type": "consonant" },
+    { "devanagari": "व", "romanization": "va", "type": "consonant" },
+    { "devanagari": "श", "romanization": "sha", "type": "consonant" },
+    { "devanagari": "ष", "romanization": "sha", "type": "consonant" },
+    { "devanagari": "स", "romanization": "sa", "type": "consonant" },
+    { "devanagari": "ह", "romanization": "ha", "type": "consonant" }
+  ],
+  "matras": [
+    { "matra": "ा", "romanization": "aa", "type": "matra" },
+    { "matra": "ि", "romanization": "i", "type": "matra" },
+    { "matra": "ी", "romanization": "ii", "type": "matra" },
+    { "matra": "ु", "romanization": "u", "type": "matra" },
+    { "matra": "ू", "romanization": "uu", "type": "matra" },
+    { "matra": "ृ", "romanization": "ri", "type": "matra" },
+    { "matra": "े", "romanization": "e", "type": "matra" },
+    { "matra": "ै", "romanization": "ai", "type": "matra" },
+    { "matra": "ो", "romanization": "o", "type": "matra" },
+    { "matra": "ौ", "romanization": "au", "type": "matra" },
+    { "matra": "्", "romanization": "", "type": "virama" }
+  ],
+  "conjuncts": [
+    { "devanagari": "क्ष", "romanization": "ksha", "type": "conjunct" },
+    { "devanagari": "त्र", "romanization": "tra", "type": "conjunct" },
+    { "devanagari": "ज्ञ", "romanization": "gya", "type": "conjunct" },
+    { "devanagari": "श्र", "romanization": "shra", "type": "conjunct" },
+    { "devanagari": "द्व", "romanization": "dwa", "type": "conjunct" },
+    { "devanagari": "द्य", "romanization": "dya", "type": "conjunct" },
+    { "devanagari": "ह्म", "romanization": "hma", "type": "conjunct" },
+    { "devanagari": "ह्य", "romanization": "hya", "type": "conjunct" },
+    { "devanagari": "क्त", "romanization": "kta", "type": "conjunct" },
+    { "devanagari": "स्त", "romanization": "sta", "type": "conjunct" }
+  ],
+  "words": [
+    {
+      "devanagari": "नमस्ते",
+      "romanization": "namaste",
+      "meaning": "hello",
+      "type": "word"
+    },
+    {
+      "devanagari": "धन्यवाद",
+      "romanization": "dhanyawad",
+      "meaning": "thank you",
+      "type": "word"
+    },
+    {
+      "devanagari": "पानी",
+      "romanization": "paani",
+      "meaning": "water",
+      "type": "word"
+    },
+    {
+      "devanagari": "खाना",
+      "romanization": "khaana",
+      "meaning": "food",
+      "type": "word"
+    },
+    {
+      "devanagari": "घर",
+      "romanization": "ghar",
+      "meaning": "house",
+      "type": "word"
+    },
+    {
+      "devanagari": "किताब",
+      "romanization": "kitaab",
+      "meaning": "book",
+      "type": "word"
+    },
+    {
+      "devanagari": "स्कूल",
+      "romanization": "school",
+      "meaning": "school",
+      "type": "word"
+    },
+    {
+      "devanagari": "दोस्त",
+      "romanization": "dost",
+      "meaning": "friend",
+      "type": "word"
+    },
+    {
+      "devanagari": "समय",
+      "romanization": "samay",
+      "meaning": "time",
+      "type": "word"
+    },
+    {
+      "devanagari": "सुंदर",
+      "romanization": "sundar",
+      "meaning": "beautiful",
+      "type": "word"
+    }
+  ],
+  "phrases": [
+    {
+      "devanagari": "आप कैसे हैं?",
+      "romanization": "aap kaise hain?",
+      "meaning": "how are you?",
+      "type": "phrase"
+    },
+    {
+      "devanagari": "मैं ठीक हूं",
+      "romanization": "main theek hun",
+      "meaning": "I am fine",
+      "type": "phrase"
+    },
+    {
+      "devanagari": "क्या हाल है?",
+      "romanization": "kya haal hai?",
+      "meaning": "what's up?",
+      "type": "phrase"
+    },
+    {
+      "devanagari": "मुझे समझ नहीं आया",
+      "romanization": "mujhe samajh nahin aaya",
+      "meaning": "I didn't understand",
+      "type": "phrase"
+    }
+  ]
+}

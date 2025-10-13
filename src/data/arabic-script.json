@@ -1,0 +1,341 @@
+{
+  "letters": [
+    {
+      "arabic": "ا",
+      "romanization": "alif",
+      "type": "letter",
+      "isolated": "ا",
+      "initial": "ا",
+      "medial": "ـا",
+      "final": "ـا"
+    },
+    {
+      "arabic": "ب",
+      "romanization": "ba",
+      "type": "letter",
+      "isolated": "ب",
+      "initial": "بـ",
+      "medial": "ـبـ",
+      "final": "ـب"
+    },
+    {
+      "arabic": "ت",
+      "romanization": "ta",
+      "type": "letter",
+      "isolated": "ت",
+      "initial": "تـ",
+      "medial": "ـتـ",
+      "final": "ـت"
+    },
+    {
+      "arabic": "ث",
+      "romanization": "tha",
+      "type": "letter",
+      "isolated": "ث",
+      "initial": "ثـ",
+      "medial": "ـثـ",
+      "final": "ـث"
+    },
+    {
+      "arabic": "ج",
+      "romanization": "jim",
+      "type": "letter",
+      "isolated": "ج",
+      "initial": "جـ",
+      "medial": "ـجـ",
+      "final": "ـج"
+    },
+    {
+      "arabic": "ح",
+      "romanization": "ha",
+      "type": "letter",
+      "isolated": "ح",
+      "initial": "حـ",
+      "medial": "ـحـ",
+      "final": "ـح"
+    },
+    {
+      "arabic": "خ",
+      "romanization": "kha",
+      "type": "letter",
+      "isolated": "خ",
+      "initial": "خـ",
+      "medial": "ـخـ",
+      "final": "ـخ"
+    },
+    {
+      "arabic": "د",
+      "romanization": "dal",
+      "type": "letter",
+      "isolated": "د",
+      "initial": "د",
+      "medial": "ـد",
+      "final": "ـد"
+    },
+    {
+      "arabic": "ذ",
+      "romanization": "dhal",
+      "type": "letter",
+      "isolated": "ذ",
+      "initial": "ذ",
+      "medial": "ـذ",
+      "final": "ـذ"
+    },
+    {
+      "arabic": "ر",
+      "romanization": "ra",
+      "type": "letter",
+      "isolated": "ر",
+      "initial": "ر",
+      "medial": "ـر",
+      "final": "ـر"
+    },
+    {
+      "arabic": "ز",
+      "romanization": "za",
+      "type": "letter",
+      "isolated": "ز",
+      "initial": "ز",
+      "medial": "ـز",
+      "final": "ـز"
+    },
+    {
+      "arabic": "س",
+      "romanization": "sin",
+      "type": "letter",
+      "isolated": "س",
+      "initial": "سـ",
+      "medial": "ـسـ",
+      "final": "ـس"
+    },
+    {
+      "arabic": "ش",
+      "romanization": "shin",
+      "type": "letter",
+      "isolated": "ش",
+      "initial": "شـ",
+      "medial": "ـشـ",
+      "final": "ـش"
+    },
+    {
+      "arabic": "ص",
+      "romanization": "sad",
+      "type": "letter",
+      "isolated": "ص",
+      "initial": "صـ",
+      "medial": "ـصـ",
+      "final": "ـص"
+    },
+    {
+      "arabic": "ض",
+      "romanization": "dad",
+      "type": "letter",
+      "isolated": "ض",
+      "initial": "ضـ",
+      "medial": "ـضـ",
+      "final": "ـض"
+    },
+    {
+      "arabic": "ط",
+      "romanization": "ta",
+      "type": "letter",
+      "isolated": "ط",
+      "initial": "طـ",
+      "medial": "ـطـ",
+      "final": "ـط"
+    },
+    {
+      "arabic": "ظ",
+      "romanization": "za",
+      "type": "letter",
+      "isolated": "ظ",
+      "initial": "ظـ",
+      "medial": "ـظـ",
+      "final": "ـظ"
+    },
+    {
+      "arabic": "ع",
+      "romanization": "ain",
+      "type": "letter",
+      "isolated": "ع",
+      "initial": "عـ",
+      "medial": "ـعـ",
+      "final": "ـع"
+    },
+    {
+      "arabic": "غ",
+      "romanization": "ghain",
+      "type": "letter",
+      "isolated": "غ",
+      "initial": "غـ",
+      "medial": "ـغـ",
+      "final": "ـغ"
+    },
+    {
+      "arabic": "ف",
+      "romanization": "fa",
+      "type": "letter",
+      "isolated": "ف",
+      "initial": "فـ",
+      "medial": "ـفـ",
+      "final": "ـف"
+    },
+    {
+      "arabic": "ق",
+      "romanization": "qaf",
+      "type": "letter",
+      "isolated": "ق",
+      "initial": "قـ",
+      "medial": "ـقـ",
+      "final": "ـق"
+    },
+    {
+      "arabic": "ك",
+      "romanization": "kaf",
+      "type": "letter",
+      "isolated": "ك",
+      "initial": "كـ",
+      "medial": "ـكـ",
+      "final": "ـك"
+    },
+    {
+      "arabic": "ل",
+      "romanization": "lam",
+      "type": "letter",
+      "isolated": "ل",
+      "initial": "لـ",
+      "medial": "ـلـ",
+      "final": "ـل"
+    },
+    {
+      "arabic": "م",
+      "romanization": "mim",
+      "type": "letter",
+      "isolated": "م",
+      "initial": "مـ",
+      "medial": "ـمـ",
+      "final": "ـم"
+    },
+    {
+      "arabic": "ن",
+      "romanization": "nun",
+      "type": "letter",
+      "isolated": "ن",
+      "initial": "نـ",
+      "medial": "ـنـ",
+      "final": "ـن"
+    },
+    {
+      "arabic": "ه",
+      "romanization": "ha",
+      "type": "letter",
+      "isolated": "ه",
+      "initial": "هـ",
+      "medial": "ـهـ",
+      "final": "ـه"
+    },
+    {
+      "arabic": "و",
+      "romanization": "waw",
+      "type": "letter",
+      "isolated": "و",
+      "initial": "و",
+      "medial": "ـو",
+      "final": "ـو"
+    },
+    {
+      "arabic": "ي",
+      "romanization": "ya",
+      "type": "letter",
+      "isolated": "ي",
+      "initial": "يـ",
+      "medial": "ـيـ",
+      "final": "ـي"
+    }
+  ],
+  "diacritics": [
+    { "arabic": "َ", "romanization": "a", "type": "diacritic" },
+    { "arabic": "ِ", "romanization": "i", "type": "diacritic" },
+    { "arabic": "ُ", "romanization": "u", "type": "diacritic" },
+    { "arabic": "ْ", "romanization": "", "type": "diacritic" },
+    { "arabic": "ً", "romanization": "an", "type": "diacritic" },
+    { "arabic": "ٍ", "romanization": "in", "type": "diacritic" },
+    { "arabic": "ٌ", "romanization": "un", "type": "diacritic" }
+  ],
+  "words": [
+    {
+      "arabic": "السلام عليكم",
+      "romanization": "as-salamu alaykum",
+      "meaning": "peace be upon you",
+      "type": "word"
+    },
+    {
+      "arabic": "شكرا",
+      "romanization": "shukran",
+      "meaning": "thank you",
+      "type": "word"
+    },
+    {
+      "arabic": "ماء",
+      "romanization": "ma'",
+      "meaning": "water",
+      "type": "word"
+    },
+    {
+      "arabic": "طعام",
+      "romanization": "ta'am",
+      "meaning": "food",
+      "type": "word"
+    },
+    {
+      "arabic": "بيت",
+      "romanization": "bayt",
+      "meaning": "house",
+      "type": "word"
+    },
+    {
+      "arabic": "كتاب",
+      "romanization": "kitab",
+      "meaning": "book",
+      "type": "word"
+    },
+    {
+      "arabic": "مدرسة",
+      "romanization": "madrasa",
+      "meaning": "school",
+      "type": "word"
+    },
+    {
+      "arabic": "صديق",
+      "romanization": "sadiq",
+      "meaning": "friend",
+      "type": "word"
+    }
+  ],
+  "phrases": [
+    {
+      "arabic": "كيف حالك؟",
+      "romanization": "kayf halak?",
+      "meaning": "how are you?",
+      "type": "phrase"
+    },
+    {
+      "arabic": "أنا بخير",
+      "romanization": "ana bi-khayr",
+      "meaning": "I am fine",
+      "type": "phrase"
+    },
+    {
+      "arabic": "ما اسمك؟",
+      "romanization": "ma ismak?",
+      "meaning": "what is your name?",
+      "type": "phrase"
+    },
+    {
+      "arabic": "لا أفهم",
+      "romanization": "la afham",
+      "meaning": "I don't understand",
+      "type": "phrase"
+    }
+  ]
+}
