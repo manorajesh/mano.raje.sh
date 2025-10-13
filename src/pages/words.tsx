@@ -70,6 +70,7 @@ function Words() {
       <div className="bg-dark-blue flex min-h-screen items-center justify-center p-6 font-sans">
         <div className="max-w-prose text-white max-h-[100vh] overflow-y-auto pr-2 no-scrollbar">
           <div className="pb-6 text-left font-serif text-5xl italic">
+            {/* eslint-disable-next-line react/jsx-no-comment-textnodes */}
             <h1>// what the fuck?</h1>
           </div>
 

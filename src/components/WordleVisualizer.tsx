@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 
 interface WordleVisualizerProps {
   initialText?: string;
@@ -13,7 +13,6 @@ const WordleVisualizer: React.FC<WordleVisualizerProps> = ({
 
   // Standard Wordle has 6 attempts of 5 letters each
   const STANDARD_ROWS = 6;
-  const STANDARD_COLS = 5;
 
   // Parse the Wordle result text into a grid
   const parseWordleText = (text: string) => {
@@ -38,7 +37,7 @@ const WordleVisualizer: React.FC<WordleVisualizerProps> = ({
   };
 
   // Generate image on canvas with flat design
-  const generateImage = () => {
+  const generateImage = useCallback(() => {
     if (!canvasRef.current || parsedGrid.length === 0) return;
 
     const canvas = canvasRef.current;
@@ -112,7 +111,7 @@ const WordleVisualizer: React.FC<WordleVisualizerProps> = ({
         ctx.fillRect(x, y, cellWidth, cellHeight);
       });
     });
-  };
+  }, [parsedGrid]);
 
   // Process input text when it changes
   useEffect(() => {
@@ -123,7 +122,7 @@ const WordleVisualizer: React.FC<WordleVisualizerProps> = ({
   // Generate image when grid changes
   useEffect(() => {
     generateImage();
-  }, [parsedGrid]);
+  }, [parsedGrid, generateImage]);
 
   // Download the canvas as an image
   const downloadImage = () => {

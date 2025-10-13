@@ -464,7 +464,6 @@ export default function LetterBoxd() {
   }
 
   const currentMovie = movies[currentIndex];
-  const totalWatchedCount = watchedMovies.length + importedWatchedTitles.size;
   const progress =
     ((currentIndex +
       ignoredMovies.size +

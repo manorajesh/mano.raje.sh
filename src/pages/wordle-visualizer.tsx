@@ -1,5 +1,4 @@
 import React from "react";
-import { MousePositionProvider } from "../components/MousePosition";
 import WordleVisualizer from "../components/WordleVisualizer";
 
 function WordleVisualizerPage() {
