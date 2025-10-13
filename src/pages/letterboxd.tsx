@@ -193,6 +193,20 @@ const StarRating: React.FC<{
 
 const MovieCard: React.FC<{
   movie: Movie;
+  initialData?: {
+    rating?: number;
+    timeFrame?: TimeFrame;
+    rewatch?: boolean;
+    review?: string;
+    generatedDate?: string;
+  };
+  onFormDataChange?: (data: {
+    rating: number;
+    timeFrame: TimeFrame;
+    rewatch: boolean;
+    review: string;
+    generatedDate: string;
+  }) => void;
   onIgnore: () => void;
   onWatch: (
     data: Omit<
@@ -201,17 +215,43 @@ const MovieCard: React.FC<{
     >
   ) => void;
   onAddToWatchlist: () => void;
-}> = ({ movie, onIgnore, onWatch, onAddToWatchlist }) => {
-  const [rating, setRating] = useState(0);
-  const [timeFrame, setTimeFrame] = useState<TimeFrame>("last-year");
-  const [rewatch, setRewatch] = useState(false);
-  const [review, setReview] = useState("");
-  const [generatedDate, setGeneratedDate] = useState("");
+}> = ({
+  movie,
+  initialData,
+  onFormDataChange,
+  onIgnore,
+  onWatch,
+  onAddToWatchlist,
+}) => {
+  const [rating, setRating] = useState(initialData?.rating || 0);
+  const [timeFrame, setTimeFrame] = useState<TimeFrame>(
+    initialData?.timeFrame || "last-year"
+  );
+  const [rewatch, setRewatch] = useState(initialData?.rewatch || false);
+  const [review, setReview] = useState(initialData?.review || "");
+  const [generatedDate, setGeneratedDate] = useState(
+    initialData?.generatedDate || ""
+  );
 
   // Generate initial date when component mounts or timeFrame changes
   useEffect(() => {
-    setGeneratedDate(generateRandomDate(timeFrame, movie.releaseDate));
-  }, [timeFrame, movie.releaseDate]);
+    if (!initialData?.generatedDate) {
+      setGeneratedDate(generateRandomDate(timeFrame, movie.releaseDate));
+    }
+  }, [timeFrame, movie.releaseDate, initialData?.generatedDate]);
+
+  // Notify parent component of form data changes
+  useEffect(() => {
+    if (onFormDataChange && generatedDate) {
+      onFormDataChange({
+        rating,
+        timeFrame,
+        rewatch,
+        review,
+        generatedDate,
+      });
+    }
+  }, [rating, timeFrame, rewatch, review, generatedDate, onFormDataChange]);
 
   const refreshDate = () => {
     setGeneratedDate(generateRandomDate(timeFrame, movie.releaseDate));
@@ -355,6 +395,29 @@ export default function LetterBoxd() {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [actionHistory, setActionHistory] = useState<
+    Array<{
+      movieId: number;
+      action: "ignore" | "watch" | "watchlist";
+      data?: any;
+      formData?: {
+        rating: number;
+        timeFrame: TimeFrame;
+        rewatch: boolean;
+        review: string;
+        generatedDate: string;
+      };
+    }>
+  >([]);
+  const [currentFormData, setCurrentFormData] = useState<{
+    [movieId: number]: {
+      rating: number;
+      timeFrame: TimeFrame;
+      rewatch: boolean;
+      review: string;
+      generatedDate: string;
+    };
+  }>({});
 
   const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -473,7 +536,12 @@ export default function LetterBoxd() {
     100;
 
   const handleIgnore = () => {
+    const formData = currentFormData[currentMovie.id];
     setIgnoredMovies((prev) => new Set(prev).add(currentMovie.id));
+    setActionHistory((prev) => [
+      ...prev,
+      { movieId: currentMovie.id, action: "ignore", formData },
+    ]);
     setCurrentIndex((prev) => prev + 1);
   };
 
@@ -483,21 +551,82 @@ export default function LetterBoxd() {
       "id" | "title" | "year" | "director" | "releaseDate" | "posterPath"
     >
   ) => {
+    const formData = currentFormData[currentMovie.id];
     const watchedMovie: WatchedMovie = {
       ...currentMovie,
       ...watchData,
     };
     setWatchedMovies((prev) => [...prev, watchedMovie]);
+    setActionHistory((prev) => [
+      ...prev,
+      {
+        movieId: currentMovie.id,
+        action: "watch",
+        data: watchedMovie,
+        formData,
+      },
+    ]);
     setCurrentIndex((prev) => prev + 1);
   };
 
   const handleAddToWatchlist = () => {
+    const formData = currentFormData[currentMovie.id];
     const watchlistMovie: WatchlistMovie = {
       ...currentMovie,
       addedDate: new Date().toISOString().split("T")[0],
     };
     setWatchlistMovies((prev) => [...prev, watchlistMovie]);
+    setActionHistory((prev) => [
+      ...prev,
+      {
+        movieId: currentMovie.id,
+        action: "watchlist",
+        data: watchlistMovie,
+        formData,
+      },
+    ]);
     setCurrentIndex((prev) => prev + 1);
+  };
+
+  const handleGoBack = () => {
+    if (actionHistory.length === 0 || currentIndex === 0) return;
+
+    const lastAction = actionHistory[actionHistory.length - 1];
+
+    // Remove the last action from history
+    setActionHistory((prev) => prev.slice(0, -1));
+
+    // Undo the last action
+    switch (lastAction.action) {
+      case "ignore":
+        setIgnoredMovies((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(lastAction.movieId);
+          return newSet;
+        });
+        break;
+      case "watch":
+        setWatchedMovies((prev) =>
+          prev.filter((movie) => movie.id !== lastAction.movieId)
+        );
+        break;
+      case "watchlist":
+        setWatchlistMovies((prev) =>
+          prev.filter((movie) => movie.id !== lastAction.movieId)
+        );
+        break;
+    }
+
+    // Restore form data if it exists
+    if (lastAction.formData) {
+      setCurrentFormData((prev) => ({
+        ...prev,
+        [lastAction.movieId]: lastAction.formData!,
+      }));
+    }
+
+    // Go back one movie
+    setCurrentIndex((prev) => prev - 1);
   };
 
   const generateWatchedCSV = () => {
@@ -692,14 +821,25 @@ export default function LetterBoxd() {
               style={{ width: `${progress}%` }}
             />
           </div>
-          <p className="text-gray-600">
-            Movie {currentIndex + 1} of {movies.length} • Watched:{" "}
-            {watchedMovies.length} • Watchlist: {watchlistMovies.length} •
-            Skipped: {ignoredMovies.size}
-            {importedWatchedTitles.size > 0 && (
-              <span> • Previously watched: {importedWatchedTitles.size}</span>
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <p className="text-gray-600">
+              Movie {currentIndex + 1} of {movies.length} • Watched:{" "}
+              {watchedMovies.length} • Watchlist: {watchlistMovies.length} •
+              Skipped: {ignoredMovies.size}
+              {importedWatchedTitles.size > 0 && (
+                <span> • Previously watched: {importedWatchedTitles.size}</span>
+              )}
+            </p>
+            {actionHistory.length > 0 && currentIndex > 0 && (
+              <button
+                onClick={handleGoBack}
+                className="px-3 py-1 bg-orange-500 text-white text-sm rounded hover:bg-orange-600 transition-colors"
+                title="Undo last action and go back to previous movie"
+              >
+                ← Go Back
+              </button>
             )}
-          </p>
+          </div>
         </div>
 
         {isCurrentMovieWatched ? (
