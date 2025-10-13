@@ -75,6 +75,7 @@ function Words() {
           </div>
 
           <div className="pb-6 text-left font-serif text-1xl">
+            {/* eslint-disable-next-line react/jsx-no-comment-textnodes */}
             <h2 className="text-gray-400">
               /* peculiar and vulgar code on github */
             </h2>
