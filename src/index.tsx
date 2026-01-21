@@ -11,6 +11,7 @@ import Hindi from "./pages/hindi";
 import Words from "./pages/words";
 import WordleVisualizerPage from "./pages/wordle-visualizer";
 import LetterBoxd from "./pages/letterboxd";
+import Pinterest from "./pages/pinterest";
 
 const router = createBrowserRouter([
   {
@@ -40,6 +41,10 @@ const router = createBrowserRouter([
   {
     path: "/letterboxd",
     element: <LetterBoxd />,
+  },
+  {
+    path: "/pinterest",
+    element: <Pinterest />,
   },
   {
     path: "*",
