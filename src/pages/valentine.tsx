@@ -384,6 +384,18 @@ function Valentine() {
             )}
             {/* Overlay centered on the paper */}
             <div className="animate-fade-in-delayed absolute inset-0 flex flex-col items-center justify-center gap-6 px-8">
+              {/* Name in top-left corner */}
+              <img
+                src="/name.png"
+                alt="name"
+                className="pointer-events-none absolute select-none"
+                draggable={false}
+                style={{
+                  width: "90px",
+                  top: "20%",
+                  left: "26%",
+                }}
+              />
               {/* Hearts in bottom-right corner */}
               <img
                 src="/hearts.png"
