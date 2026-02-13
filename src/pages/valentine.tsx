@@ -91,8 +91,6 @@ function Valentine() {
   const [uncrumpleSrc, setUncrumpleSrc] = useState<string | null>(null);
   const [showPaper, setShowPaper] = useState(false);
   const [shapePos, setShapePos] = useState<{ x: number; y: number } | null>(null);
-  const [shapeDisplaced, setShapeDisplaced] = useState(false);
-  const noButtonRef = useRef<HTMLDivElement>(null);
   const [noClickCount, setNoClickCount] = useState(0);
   const timerRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -188,30 +186,6 @@ function Valentine() {
     };
   }, [uncrumpleSrc]);
 
-  // Position shape on the no button once it renders
-  useEffect(() => {
-    if (phase === "uncrumpled" && !shapeDisplaced) {
-      const positionShape = () => {
-        if (noButtonRef.current) {
-          const rect = noButtonRef.current.getBoundingClientRect();
-          setShapePos({
-            x: rect.left + rect.width / 2 - 20,
-            y: rect.top + rect.height / 2,
-          });
-        } else {
-          // fallback: center of screen offset right
-          setShapePos({
-            x: window.innerWidth / 2 + 60,
-            y: window.innerHeight / 2 + 30,
-          });
-        }
-      };
-      // Delay to let the overlay render and get positioned
-      const t = setTimeout(positionShape, 100);
-      return () => clearTimeout(t);
-    }
-  }, [phase, shapeDisplaced]);
-
   const catInScene = phase !== "loading" && phase !== "blank" && phase !== "uncrumpled" && phase !== "accepted" && phase !== "rejected";
 
   const meowText = "meow... meow meow meow";
@@ -232,7 +206,7 @@ function Valentine() {
       {/* === LOADING SCREEN === */}
       {phase === "loading" && (
         <div className="flex flex-col items-center gap-4">
-          <p className="text-3xl text-amber-800/70">loading...</p>
+          <p className="text-3xl text-amber-800/70">one sec...</p>
           <div
             style={{
               width: "180px",
@@ -493,7 +467,6 @@ function Valentine() {
 
                 {/* No button with shape sitting on it */}
                 <div
-                  ref={noButtonRef}
                   className="relative"
                   onClick={(e) => {
                     const next = noClickCount + 1;
@@ -503,7 +476,6 @@ function Valentine() {
                       return;
                     }
                     setShapePos({ x: e.clientX, y: e.clientY });
-                    setShapeDisplaced(true);
                   }}
                   onTouchEnd={(e) => {
                     e.preventDefault();
@@ -515,10 +487,26 @@ function Valentine() {
                       return;
                     }
                     setShapePos({ x: touch.clientX, y: touch.clientY });
-                    setShapeDisplaced(true);
                   }}
                   style={{ cursor: pawPointer }}
                 >
+                  {!shapePos && (
+                    <img
+                      src="/shape.png"
+                      alt="shape blocking no"
+                      className="animate-fade-in-delayed pointer-events-none absolute select-none"
+                      draggable={false}
+                      style={{
+                        width: "7ch",
+                        bottom: "5px",
+                        left: "50%",
+                        transform: "translateX(-25%)",
+                        filter:
+                          "brightness(1.7) drop-shadow(0 4px 12px rgba(0,0,0,0.3))",
+                        zIndex: 5,
+                      }}
+                    />
+                  )}
                   <button
                     className="text-xl font-bold text-gray-400 opacity-50"
                     style={{
@@ -542,23 +530,21 @@ function Valentine() {
         </div>
       )}
 
-      {/* Shape - single dynamic instance */}
+      {/* Shape that flew to cursor */}
       {phase === "uncrumpled" && shapePos && (
         <img
           src="/shape.png"
-          alt="shape"
+          alt="shape moved to cursor"
           className="pointer-events-none select-none"
           draggable={false}
           style={{
             position: "fixed",
             left: shapePos.x - 50,
             top: shapePos.y - 50,
-            width: "5ch",
+            width: "7ch",
             filter: "brightness(1.7) drop-shadow(0 4px 12px rgba(0,0,0,0.3))",
             zIndex: 100,
-            transition: "left 0.2s ease-out, top 0.2s ease-out, transform 0.3s ease-out",
-            opacity: shapeDisplaced ? 1 : 0,
-            animation: shapeDisplaced ? undefined : "fade-in 0.7s ease-out 0.8s forwards",
+            transition: "left 0.2s ease-out, top 0.2s ease-out",
           }}
         />
       )}
