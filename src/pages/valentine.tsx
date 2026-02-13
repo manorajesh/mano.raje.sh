@@ -33,7 +33,6 @@ function useTypewriter(text: string, speed: number = 60, active: boolean = true)
 type Phase =
   | "blank"
   | "entrance"
-  | "rotate"
   | "meow"
   | "translated"
   | "paper"
@@ -72,27 +71,16 @@ function Valentine() {
   const [noClickCount, setNoClickCount] = useState(0);
   const timerRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isLandscape, setIsLandscape] = useState(
-    () => window.innerWidth >= window.innerHeight
-  );
   const [scale, setScale] = useState(1);
-  const passedRotateRef = useRef(false);
 
-  // Track orientation
+  // Scale container to fit viewport
   useEffect(() => {
     const check = () => {
-      const landscape = window.innerWidth >= window.innerHeight;
-      setIsLandscape(landscape);
-      if (landscape) {
-        // Only scale in landscape to fit content
-        const DESIGN_HEIGHT = 600;
-        const vScale = Math.min(1, window.innerHeight / DESIGN_HEIGHT);
-        const hScale = Math.min(1, window.innerWidth / 1100);
-        setScale(Math.min(vScale, hScale));
-      } else {
-        // In portrait, don't scale — just show rotate prompt at full size
-        setScale(1);
-      }
+      const DESIGN_W = 360;
+      const DESIGN_H = 500;
+      const vScale = window.innerHeight / DESIGN_H;
+      const hScale = window.innerWidth / DESIGN_W;
+      setScale(Math.min(vScale, hScale));
     };
     check();
     window.addEventListener("resize", check);
@@ -105,32 +93,16 @@ function Valentine() {
 
   useEffect(() => {
     schedule(() => setPhase("entrance"), 400);
-    schedule(() => {
-      // After entrance, check orientation
-      if (window.innerWidth < window.innerHeight) {
-        setPhase("rotate");
-      } else {
-        passedRotateRef.current = true;
-        setPhase("meow");
-      }
-    }, 2800);
+    schedule(() => setPhase("meow"), 2800);
 
     const timers = timerRef.current;
     return () => timers.forEach(clearTimeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // When orientation changes to landscape and we're stuck on rotate, proceed
+  // Schedule meow->translated
   useEffect(() => {
-    if (isLandscape && phase === "rotate" && !passedRotateRef.current) {
-      passedRotateRef.current = true;
-      setPhase("meow");
-    }
-  }, [isLandscape, phase]);
-
-  // Schedule meow->translated->paper if we skipped rotate
-  useEffect(() => {
-    if (phase === "meow" && passedRotateRef.current) {
+    if (phase === "meow") {
       const t1 = setTimeout(() => setPhase("translated"), 2200);
       return () => clearTimeout(t1);
     }
@@ -162,19 +134,15 @@ function Valentine() {
 
   const catInScene = phase !== "blank" && phase !== "uncrumpled" && phase !== "accepted" && phase !== "rejected";
 
-  const rotateText = "meow meow";
-  const rotateTranslation = "can you rotate the phone?";
   const meowText = "meow... meow meow meow";
   const translationText = "\"i found this outside with your name on it.\"";
 
-  const rotateTyping = useTypewriter(rotateText, 70, phase === "rotate");
-  const rotateTranslationTyping = useTypewriter(rotateTranslation, 40, phase === "rotate");
   const meowTyping = useTypewriter(meowText, 70, phase === "meow" || phase === "translated" || phase === "paper");
   const translationTyping = useTypewriter(translationText, 40, phase === "translated" || phase === "paper");
 
   return (
     <div
-      className="relative flex min-h-screen items-center justify-center overflow-hidden"
+      className={`relative flex min-h-screen items-center justify-center ${phase === "uncrumpled" || phase === "accepted" || phase === "rejected" ? "" : "overflow-hidden"}`}
       style={{
         cursor: pawCursor,
         background: "#f5e6d3",
@@ -206,8 +174,8 @@ function Valentine() {
         <div
           ref={containerRef}
           style={{
-            width: "1100px",
-            height: "600px",
+            width: "360px",
+            height: "500px",
             position: "relative",
             transform: `scale(${scale})`,
             transformOrigin: "center center",
@@ -238,55 +206,10 @@ function Valentine() {
             className="select-none"
             draggable={false}
             style={{
-              width: "360px",
+              width: "300px",
               filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.3))",
             }}
           />
-        </div>
-      )}
-
-      {/* === ROTATE PHONE PROMPT === */}
-      {phase === "rotate" && (
-        <div
-          className="animate-fade-in absolute"
-          style={{
-            bottom: "calc(50% + 140px)",
-            left: "18%",
-            zIndex: 20,
-          }}
-        >
-          <div
-            style={{
-              background: "white",
-              borderRadius: "20px",
-              padding: "20px 32px",
-              position: "relative",
-              boxShadow: "2px 3px 8px rgba(0,0,0,0.1)",
-              maxWidth: "420px",
-              whiteSpace: "nowrap",
-            }}
-          >
-            <p className="text-3xl text-gray-800">{rotateTyping.displayed}</p>
-            <p className="mt-2 text-2xl text-gray-400">
-              {rotateTranslationTyping.displayed}
-            </p>
-            <p className="mt-3 text-center text-4xl">
-              &#x1F504;
-            </p>
-            {/* Bubble tail */}
-            <div
-              style={{
-                position: "absolute",
-                bottom: "-14px",
-                left: "20px",
-                width: 0,
-                height: 0,
-                borderLeft: "12px solid transparent",
-                borderRight: "12px solid transparent",
-                borderTop: "16px solid white",
-              }}
-            />
-          </div>
         </div>
       )}
 
@@ -295,25 +218,25 @@ function Valentine() {
         <div
           className="animate-fade-in absolute"
           style={{
-            bottom: "calc(50% + 140px)",
-            left: "28%",
+            bottom: "calc(50% + 120px)",
+            left: "25%",
             zIndex: 20,
+            maxWidth: "calc(100% - 40px)",
           }}
         >
           <div
             style={{
               background: "white",
               borderRadius: "20px",
-              padding: "20px 32px",
+              padding: "12px 18px",
               position: "relative",
               boxShadow: "2px 3px 8px rgba(0,0,0,0.1)",
-              maxWidth: "420px",
-              whiteSpace: "nowrap",
+              maxWidth: "100%",
             }}
           >
-            <p className="text-3xl text-gray-800">{meowTyping.displayed}</p>
+            <p className="text-xl text-gray-800" style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{meowTyping.displayed}</p>
             {(phase === "translated" || phase === "paper") && (
-              <p className="mt-2 text-2xl text-gray-400">
+              <p className="mt-1 text-base text-gray-400">
                 {translationTyping.displayed}
               </p>
             )}
@@ -340,12 +263,13 @@ function Valentine() {
           className="absolute"
           style={{
             top: "50%",
-            left: "calc(50% - 300px)",
+            left: "calc(50% - 200px)",
             transform: "translateY(-50%)",
             animation: "paper-appear 0.5s steps(6) forwards",
             zIndex: 15,
           }}
           onClick={handlePaperClick}
+          onTouchEnd={(e) => { e.preventDefault(); handlePaperClick(); }}
         >
           <img
             src="/static_crumpled.gif"
@@ -353,7 +277,7 @@ function Valentine() {
             className="select-none drop-shadow-lg"
             draggable={false}
             style={{
-              width: "300px",
+              width: "240px",
               cursor: pawPointer,
               animation: "wiggle 2s ease-in-out infinite",
             }}
@@ -364,16 +288,38 @@ function Valentine() {
         </div>
       )}
 
-      {/* === UNCRUMPLED STATE === */}
+        </div>
+      </div>{/* end scaled container */}
+
+      {/* === UNCRUMPLED STATE (outside scaled container, uses viewport) === */}
       {phase === "uncrumpled" && (
         <div
-          className="animate-fade-in absolute inset-0 flex items-center justify-center"
-          style={{ zIndex: 30 }}
+          className="animate-fade-in"
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            zIndex: 30,
+            pointerEvents: "none",
+          }}
         >
+          {/* Positioning wrapper */}
+          <div
+            style={{
+              position: "absolute",
+              width: "160vw",
+              maxWidth: "900px",
+              left: "50%",
+              top: "50%",
+              transform: "translate(-50%, -50%)",
+              pointerEvents: "auto",
+            }}
+          >
           {/* Paper is the container; text + buttons sit on top */}
           <div
-            className="animate-choppy-rock relative"
-            style={{ width: "min(100vw, 1500px)" }}
+            className="animate-choppy-rock"
           >
             {uncrumpleSrc && (
               <img
@@ -392,7 +338,7 @@ function Valentine() {
                 className="pointer-events-none absolute select-none"
                 draggable={false}
                 style={{
-                  width: "90px",
+                  width: "8ch",
                   top: "20%",
                   left: "26%",
                 }}
@@ -404,7 +350,7 @@ function Valentine() {
                 className="pointer-events-none absolute select-none"
                 draggable={false}
                 style={{
-                  width: "90px",
+                  width: "6ch",
                   bottom: "15%",
                   right: "18%",
                 }}
@@ -412,14 +358,15 @@ function Valentine() {
               <img
                 src="/valentine.png"
                 alt="Will you be my Valentine?"
-                className="max-w-[50%] select-none"
+                className="max-w-[55%] select-none"
                 draggable={false}
                 style={{ transform: "rotate(-1.5deg)" }}
               />
               <div className="flex items-center gap-8">
                 <button
                   onClick={() => setPhase("accepted")}
-                  className="text-3xl font-bold text-pink-900 transition-transform hover:scale-110 md:text-4xl"
+                  onTouchEnd={(e) => { e.preventDefault(); setPhase("accepted"); }}
+                  className="text-xl font-bold text-pink-900 transition-transform hover:scale-110"
                   style={{
                     cursor: pawPointer,
                     transform: "rotate(-2deg)",
@@ -427,7 +374,7 @@ function Valentine() {
                     border: "2px solid #d4748a",
                     borderRadius:
                       "255px 15px 225px 15px / 15px 225px 15px 255px",
-                    padding: "18px 52px",
+                    padding: "10px 32px",
                     boxShadow: "3px 4px 0px #c2788a",
                   }}
                 >
@@ -444,12 +391,18 @@ function Valentine() {
                       setPhase("rejected");
                       return;
                     }
-                    if (containerRef.current) {
-                      const rect = containerRef.current.getBoundingClientRect();
-                      const x = (e.clientX - rect.left) / scale;
-                      const y = (e.clientY - rect.top) / scale;
-                      setShapePos({ x, y });
+                    setShapePos({ x: e.clientX, y: e.clientY });
+                  }}
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
+                    const touch = e.changedTouches[0];
+                    const next = noClickCount + 1;
+                    setNoClickCount(next);
+                    if (next >= 5) {
+                      setPhase("rejected");
+                      return;
                     }
+                    setShapePos({ x: touch.clientX, y: touch.clientY });
                   }}
                   style={{ cursor: pawPointer }}
                 >
@@ -457,7 +410,7 @@ function Valentine() {
                     <img
                       src="/shape.png"
                       alt="shape blocking no"
-                      className="pointer-events-none absolute select-none"
+                      className="animate-fade-in-delayed pointer-events-none absolute select-none"
                       draggable={false}
                       style={{
                         width: "100px",
@@ -471,14 +424,14 @@ function Valentine() {
                     />
                   )}
                   <button
-                    className="text-3xl font-bold text-gray-400 opacity-50 md:text-4xl"
+                    className="text-xl font-bold text-gray-400 opacity-50"
                     style={{
                       transform: "rotate(2deg)",
                       background: "#f0ede8",
                       border: "2px solid #b0a898",
                       borderRadius:
                         "255px 15px 225px 15px / 15px 225px 15px 255px",
-                      padding: "18px 52px",
+                      padding: "10px 32px",
                       boxShadow: "3px 4px 0px #999",
                       pointerEvents: "none",
                     }}
@@ -489,6 +442,7 @@ function Valentine() {
               </div>
             </div>
           </div>
+          </div>{/* end positioning wrapper */}
         </div>
       )}
 
@@ -500,7 +454,7 @@ function Valentine() {
           className="pointer-events-none select-none"
           draggable={false}
           style={{
-            position: "absolute",
+            position: "fixed",
             left: shapePos.x - 50,
             top: shapePos.y - 50,
             width: "100px",
@@ -525,9 +479,9 @@ function Valentine() {
               className="pointer-events-none absolute select-none"
               draggable={false}
               style={{
-                width: "90px",
-                top: "-50px",
-                right: "-60px",
+                width: "10ch",
+                top: "-70px",
+                right: "-4px",
                 zIndex: -1,                transform: "scaleX(-1)",              }}
             />
             <img
@@ -536,7 +490,7 @@ function Valentine() {
               className="select-none"
               draggable={false}
               style={{
-                width: "380px",
+                width: "44ch",
                 filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.3))",
                 animation: "wiggle 3s ease-in-out infinite",
               }}
@@ -552,10 +506,10 @@ function Valentine() {
               transform: "rotate(-2deg)",
             }}
           >
-            <h1 className="text-7xl font-bold text-pink-800 md:text-8xl">
+            <h1 className="text-5xl font-bold text-pink-800">
               yayayayayay!!
             </h1>
-            <p className="text-4xl text-pink-700">I love you mwah &lt;3</p>
+            <p className="text-2xl text-pink-700">I love you mwah &lt;3</p>
           </div>
         </div>
       )}
@@ -572,7 +526,7 @@ function Valentine() {
             className="select-none rounded-lg shadow-lg"
             draggable={false}
             style={{
-              width: "340px",
+              width: "400px",
               border: "3px solid white",
               transform: "rotate(-2deg)",
             }}
@@ -585,6 +539,7 @@ function Valentine() {
           </p>
           <button
             onClick={() => window.location.reload()}
+            onTouchEnd={(e) => { e.preventDefault(); window.location.reload(); }}
             className="text-2xl font-bold text-amber-800 transition-transform hover:scale-110"
             style={{
               cursor: pawPointer,
@@ -600,8 +555,6 @@ function Valentine() {
           </button>
         </div>
       )}
-        </div>
-      </div>{/* end scaled container */}
     </div>
   );
 }
