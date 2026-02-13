@@ -12,6 +12,7 @@ import Words from "./pages/words";
 import WordleVisualizerPage from "./pages/wordle-visualizer";
 import LetterBoxd from "./pages/letterboxd";
 import Pinterest from "./pages/pinterest";
+import Valentine from "./pages/valentine";
 
 const router = createBrowserRouter([
   {
@@ -45,6 +46,10 @@ const router = createBrowserRouter([
   {
     path: "/pinterest",
     element: <Pinterest />,
+  },
+  {
+    path: "/valentine",
+    element: <Valentine />,
   },
   {
     path: "*",
