@@ -48,7 +48,7 @@ const router = createBrowserRouter([
     element: <Pinterest />,
   },
   {
-    path: "/valentine",
+    path: "/ss",
     element: <Valentine />,
   },
   {
