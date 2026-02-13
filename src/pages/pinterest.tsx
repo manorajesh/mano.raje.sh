@@ -181,39 +181,39 @@ export default function Pinterest() {
     try {
       const JSZip = (await import("jszip")).default;
       const zip = new JSZip();
-      let successCount = 0;
+      const successRef = { count: 0 };
 
       // Download in batches to avoid overwhelming the browser
       const batchSize = 5;
+      const downloadImage = async (img: { url: string }, index: number) => {
+        try {
+          // Pinterest images should be directly fetchable
+          const response = await fetch(img.url);
+          if (!response.ok) throw new Error("Failed to fetch image");
+
+          const blob = await response.blob();
+          if (blob.size > 0) {
+            const extension =
+              img.url.split(".").pop()?.split("?")[0] || "jpg";
+            const filename = `pinterest-${String(index + 1).padStart(3, "0")}.${extension}`;
+            zip.file(filename, blob);
+            successRef.count++;
+          }
+        } catch (e) {
+          console.error(`Failed to download image ${index + 1}:`, e);
+        }
+
+        setDownloadProgress((prev) => ({ ...prev, current: index + 1 }));
+      };
+
       for (let i = 0; i < selectedImages.length; i += batchSize) {
         const batch = selectedImages.slice(i, i + batchSize);
-
         await Promise.all(
-          batch.map(async (img, batchIndex) => {
-            const index = i + batchIndex;
-            try {
-              // Pinterest images should be directly fetchable
-              const response = await fetch(img.url);
-              if (!response.ok) throw new Error("Failed to fetch image");
-
-              const blob = await response.blob();
-              if (blob.size > 0) {
-                const extension =
-                  img.url.split(".").pop()?.split("?")[0] || "jpg";
-                const filename = `pinterest-${String(index + 1).padStart(3, "0")}.${extension}`;
-                zip.file(filename, blob);
-                successCount++;
-              }
-            } catch (e) {
-              console.error(`Failed to download image ${index + 1}:`, e);
-            }
-
-            setDownloadProgress((prev) => ({ ...prev, current: index + 1 }));
-          })
+          batch.map((img, batchIndex) => downloadImage(img, i + batchIndex))
         );
       }
 
-      if (successCount === 0) {
+      if (successRef.count === 0) {
         throw new Error(
           "Failed to download any images. Try opening them individually."
         );
@@ -230,10 +230,10 @@ export default function Pinterest() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      if (successCount < selectedImages.length) {
+      if (successRef.count < selectedImages.length) {
         setFetchState((prev) => ({
           ...prev,
-          error: `Downloaded ${successCount} of ${selectedImages.length} images. Some images couldn't be fetched.`,
+          error: `Downloaded ${successRef.count} of ${selectedImages.length} images. Some images couldn't be fetched.`,
         }));
       }
     } catch (err) {

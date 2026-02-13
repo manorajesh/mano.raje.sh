@@ -115,7 +115,8 @@ function Valentine() {
       }
     }, 2800);
 
-    return () => timerRef.current.forEach(clearTimeout);
+    const timers = timerRef.current;
+    return () => timers.forEach(clearTimeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -492,7 +493,7 @@ function Valentine() {
       )}
 
       {/* Shape that flew to cursor */}
-      {phase == "uncrumpled" && shapePos && (
+      {phase === "uncrumpled" && shapePos && (
         <img
           src="/shape.png"
           alt="shape moved to cursor"
