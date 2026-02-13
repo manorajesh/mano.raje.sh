@@ -31,6 +31,7 @@ function useTypewriter(text: string, speed: number = 60, active: boolean = true)
 }
 
 type Phase =
+  | "loading"
   | "blank"
   | "entrance"
   | "meow"
@@ -63,15 +64,64 @@ async function fetchNonLoopingGif(url: string): Promise<string> {
   return URL.createObjectURL(new Blob([buffer], { type: "image/gif" }));
 }
 
+const PRELOAD_ASSETS = [
+  "/cat_paw.png",
+  "/stripy.png",
+  "/static_crumpled.gif",
+  "/name.png",
+  "/hearts.png",
+  "/valentine.png",
+  "/shape.png",
+  "/5EB4F8E0-11A7-4A21-8A94-849F0A5C97A6.png",
+  "/IMG_9629.jpeg",
+];
+
+function preloadImage(src: string): Promise<void> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve();
+    img.onerror = () => resolve(); // don't block on errors
+    img.src = src;
+  });
+}
+
 function Valentine() {
-  const [phase, setPhase] = useState<Phase>("blank");
+  const [phase, setPhase] = useState<Phase>("loading");
+  const [loadProgress, setLoadProgress] = useState(0);
   const [uncrumpleSrc, setUncrumpleSrc] = useState<string | null>(null);
   const [showPaper, setShowPaper] = useState(false);
   const [shapePos, setShapePos] = useState<{ x: number; y: number } | null>(null);
+  const [shapeDisplaced, setShapeDisplaced] = useState(false);
+  const noButtonRef = useRef<HTMLDivElement>(null);
   const [noClickCount, setNoClickCount] = useState(0);
   const timerRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
+  const preloadedGifRef = useRef<string | null>(null);
+
+  // Preload all assets
+  useEffect(() => {
+    let loaded = 0;
+    const total = PRELOAD_ASSETS.length + 1; // +1 for the GIF processing
+
+    const promises = PRELOAD_ASSETS.map((src) =>
+      preloadImage(src).then(() => {
+        loaded++;
+        setLoadProgress(Math.round((loaded / total) * 100));
+      })
+    );
+
+    const gifPromise = fetchNonLoopingGif("/uncrumple.gif").then((url) => {
+      preloadedGifRef.current = url;
+      loaded++;
+      setLoadProgress(Math.round((loaded / total) * 100));
+    });
+
+    Promise.all([...promises, gifPromise]).then(() => {
+      setPhase("blank");
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Scale container to fit viewport
   useEffect(() => {
@@ -91,14 +141,15 @@ function Valentine() {
     timerRef.current.push(setTimeout(fn, ms));
   };
 
+  const startedRef = useRef(false);
+
   useEffect(() => {
+    if (phase !== "blank" || startedRef.current) return;
+    startedRef.current = true;
     schedule(() => setPhase("entrance"), 400);
     schedule(() => setPhase("meow"), 2800);
-
-    const timers = timerRef.current;
-    return () => timers.forEach(clearTimeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [phase]);
 
   // Schedule meow->translated
   useEffect(() => {
@@ -120,8 +171,13 @@ function Valentine() {
 
   const handlePaperClick = async () => {
     if (phase === "paper") {
-      const blobUrl = await fetchNonLoopingGif("/uncrumple.gif");
-      setUncrumpleSrc(blobUrl);
+      if (preloadedGifRef.current) {
+        setUncrumpleSrc(preloadedGifRef.current);
+        preloadedGifRef.current = null;
+      } else {
+        const blobUrl = await fetchNonLoopingGif("/uncrumple.gif");
+        setUncrumpleSrc(blobUrl);
+      }
       setPhase("uncrumpled");
     }
   };
@@ -132,7 +188,31 @@ function Valentine() {
     };
   }, [uncrumpleSrc]);
 
-  const catInScene = phase !== "blank" && phase !== "uncrumpled" && phase !== "accepted" && phase !== "rejected";
+  // Position shape on the no button once it renders
+  useEffect(() => {
+    if (phase === "uncrumpled" && !shapeDisplaced) {
+      const positionShape = () => {
+        if (noButtonRef.current) {
+          const rect = noButtonRef.current.getBoundingClientRect();
+          setShapePos({
+            x: rect.left + rect.width / 2 - 20,
+            y: rect.top + rect.height / 2,
+          });
+        } else {
+          // fallback: center of screen offset right
+          setShapePos({
+            x: window.innerWidth / 2 + 60,
+            y: window.innerHeight / 2 + 30,
+          });
+        }
+      };
+      // Delay to let the overlay render and get positioned
+      const t = setTimeout(positionShape, 100);
+      return () => clearTimeout(t);
+    }
+  }, [phase, shapeDisplaced]);
+
+  const catInScene = phase !== "loading" && phase !== "blank" && phase !== "uncrumpled" && phase !== "accepted" && phase !== "rejected";
 
   const meowText = "meow... meow meow meow";
   const translationText = "\"i found this outside with your name on it.\"";
@@ -149,6 +229,32 @@ function Valentine() {
         fontFamily: "'Caveat', cursive",
       }}
     >
+      {/* === LOADING SCREEN === */}
+      {phase === "loading" && (
+        <div className="flex flex-col items-center gap-4">
+          <p className="text-3xl text-amber-800/70">loading...</p>
+          <div
+            style={{
+              width: "180px",
+              height: "6px",
+              background: "#e8d5c0",
+              borderRadius: "3px",
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                width: `${loadProgress}%`,
+                height: "100%",
+                background: "#c9a87c",
+                borderRadius: "3px",
+                transition: "width 0.2s ease-out",
+              }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Subtle grid texture */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.06]"
@@ -261,15 +367,19 @@ function Valentine() {
       {showPaper && phase === "paper" && (
         <div
           className="absolute"
+          role="button"
+          tabIndex={0}
           style={{
             top: "50%",
             left: "calc(50% - 200px)",
             transform: "translateY(-50%)",
             animation: "paper-appear 0.5s steps(6) forwards",
             zIndex: 15,
+            cursor: pawPointer,
+            WebkitTapHighlightColor: "transparent",
           }}
           onClick={handlePaperClick}
-          onTouchEnd={(e) => { e.preventDefault(); handlePaperClick(); }}
+          onTouchStart={(e) => { e.preventDefault(); handlePaperClick(); }}
         >
           <img
             src="/static_crumpled.gif"
@@ -383,6 +493,7 @@ function Valentine() {
 
                 {/* No button with shape sitting on it */}
                 <div
+                  ref={noButtonRef}
                   className="relative"
                   onClick={(e) => {
                     const next = noClickCount + 1;
@@ -392,6 +503,7 @@ function Valentine() {
                       return;
                     }
                     setShapePos({ x: e.clientX, y: e.clientY });
+                    setShapeDisplaced(true);
                   }}
                   onTouchEnd={(e) => {
                     e.preventDefault();
@@ -403,26 +515,10 @@ function Valentine() {
                       return;
                     }
                     setShapePos({ x: touch.clientX, y: touch.clientY });
+                    setShapeDisplaced(true);
                   }}
                   style={{ cursor: pawPointer }}
                 >
-                  {!shapePos && (
-                    <img
-                      src="/shape.png"
-                      alt="shape blocking no"
-                      className="animate-fade-in-delayed pointer-events-none absolute select-none"
-                      draggable={false}
-                      style={{
-                        width: "100px",
-                        bottom: "5px",
-                        left: "50%",
-                        transform: "translateX(-25%) rotate(99deg)",
-                        filter:
-                          "brightness(1.7) drop-shadow(0 4px 12px rgba(0,0,0,0.3))",
-                        zIndex: 5,
-                      }}
-                    />
-                  )}
                   <button
                     className="text-xl font-bold text-gray-400 opacity-50"
                     style={{
@@ -446,22 +542,23 @@ function Valentine() {
         </div>
       )}
 
-      {/* Shape that flew to cursor */}
+      {/* Shape - single dynamic instance */}
       {phase === "uncrumpled" && shapePos && (
         <img
           src="/shape.png"
-          alt="shape moved to cursor"
+          alt="shape"
           className="pointer-events-none select-none"
           draggable={false}
           style={{
             position: "fixed",
             left: shapePos.x - 50,
             top: shapePos.y - 50,
-            width: "100px",
-            transform: "rotate(99deg)",
+            width: "5ch",
             filter: "brightness(1.7) drop-shadow(0 4px 12px rgba(0,0,0,0.3))",
             zIndex: 100,
-            transition: "left 0.2s ease-out, top 0.2s ease-out",
+            transition: "left 0.2s ease-out, top 0.2s ease-out, transform 0.3s ease-out",
+            opacity: shapeDisplaced ? 1 : 0,
+            animation: shapeDisplaced ? undefined : "fade-in 0.7s ease-out 0.8s forwards",
           }}
         />
       )}
