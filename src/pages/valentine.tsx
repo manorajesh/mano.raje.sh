@@ -36,6 +36,8 @@ type Phase =
   | "entrance"
   | "meow"
   | "translated"
+  | "meow2"
+  | "translated2"
   | "paper"
   | "uncrumpled"
   | "accepted"
@@ -159,11 +161,25 @@ function Valentine() {
 
   useEffect(() => {
     if (phase === "translated") {
-      const t2 = setTimeout(() => {
+      const t2 = setTimeout(() => setPhase("meow2"), 2200);
+      return () => clearTimeout(t2);
+    }
+  }, [phase]);
+
+  useEffect(() => {
+    if (phase === "meow2") {
+      const t3 = setTimeout(() => setPhase("translated2"), 2200);
+      return () => clearTimeout(t3);
+    }
+  }, [phase]);
+
+  useEffect(() => {
+    if (phase === "translated2") {
+      const t4 = setTimeout(() => {
         setPhase("paper");
         setShowPaper(true);
       }, 2200);
-      return () => clearTimeout(t2);
+      return () => clearTimeout(t4);
     }
   }, [phase]);
 
@@ -190,9 +206,13 @@ function Valentine() {
 
   const meowText = "meow... meow meow meow";
   const translationText = "\"i found this outside with your name on it.\"";
+  const meow2Text = "meow... meooow";
+  const translation2Text = '"i think it\'s from mano"';
 
-  const meowTyping = useTypewriter(meowText, 70, phase === "meow" || phase === "translated" || phase === "paper");
-  const translationTyping = useTypewriter(translationText, 40, phase === "translated" || phase === "paper");
+  const meowTyping = useTypewriter(meowText, 70, phase === "meow" || phase === "translated" || phase === "meow2" || phase === "translated2" || phase === "paper");
+  const translationTyping = useTypewriter(translationText, 40, phase === "translated" || phase === "meow2" || phase === "translated2" || phase === "paper");
+  const meow2Typing = useTypewriter(meow2Text, 70, phase === "meow2" || phase === "translated2" || phase === "paper");
+  const translation2Typing = useTypewriter(translation2Text, 40, phase === "translated2" || phase === "paper");
 
   return (
     <div
@@ -294,11 +314,11 @@ function Valentine() {
       )}
 
       {/* === SPEECH BUBBLE (above cat) === */}
-      {(phase === "meow" || phase === "translated" || phase === "paper") && (
+      {(phase === "meow" || phase === "translated" || phase === "meow2" || phase === "translated2" || phase === "paper") && (
         <div
           className="animate-fade-in absolute"
           style={{
-            bottom: "calc(50% + 120px)",
+            bottom: "calc(40% + 120px)",
             left: "25%",
             zIndex: 20,
             maxWidth: "calc(100% - 40px)",
@@ -315,9 +335,17 @@ function Valentine() {
             }}
           >
             <p className="text-xl text-gray-800" style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{meowTyping.displayed}</p>
-            {(phase === "translated" || phase === "paper") && (
+            {(phase === "translated" || phase === "meow2" || phase === "translated2" || phase === "paper") && (
               <p className="mt-1 text-base text-gray-400">
                 {translationTyping.displayed}
+              </p>
+            )}
+            {(phase === "meow2" || phase === "translated2" || phase === "paper") && (
+              <p className="mt-1 text-xl text-gray-800" style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{meow2Typing.displayed}</p>
+            )}
+            {(phase === "translated2" || phase === "paper") && (
+              <p className="mt-1 text-base text-gray-400">
+                {translation2Typing.displayed}
               </p>
             )}
             {/* Bubble tail */}
@@ -618,7 +646,7 @@ function Valentine() {
             className="text-3xl text-gray-500"
             style={{ transform: "rotate(1deg)" }}
           >
-            did you change your mind?
+            oh okay.. did you change your mind?
           </p>
           <button
             onClick={() => window.location.reload()}
