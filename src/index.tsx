@@ -13,6 +13,7 @@ import WordleVisualizerPage from "./pages/wordle-visualizer";
 import LetterBoxd from "./pages/letterboxd";
 import Pinterest from "./pages/pinterest";
 import Valentine from "./pages/valentine";
+import MediaStudio from "./pages/media-studio";
 
 const router = createBrowserRouter([
   {
@@ -50,6 +51,10 @@ const router = createBrowserRouter([
   {
     path: "/ss",
     element: <Valentine />,
+  },
+  {
+    path: "/mixie",
+    element: <MediaStudio />,
   },
   {
     path: "*",
