@@ -34,6 +34,15 @@ function Icon({ name, size = 18 }: { name: string; size?: number }) {
   if (name === "download") {
     return <svg {...common}><path d="M12 4v11m0 0 4-4m-4 4-4-4" /><path d="M5 19.5h14" /></svg>;
   }
+  if (name === "undo") {
+    return <svg {...common}><path d="M9 7 4.5 11.5 9 16" /><path d="M5 11.5h7.5a6 6 0 0 1 6 6" /></svg>;
+  }
+  if (name === "redo") {
+    return <svg {...common}><path d="m15 7 4.5 4.5L15 16" /><path d="M19 11.5h-7.5a6 6 0 0 0-6 6" /></svg>;
+  }
+  if (name === "preview") {
+    return <svg {...common}><rect x="4" y="7" width="13" height="13" rx="2" /><path d="M8 4h10a2 2 0 0 1 2 2v10" /></svg>;
+  }
   if (name === "shuffle") {
     return <svg {...common}><path d="M3.5 7h2.1c3.7 0 4.1 6.8 8.8 6.8h5.8" /><path d="m17 10.5 3.2 3.3-3.2 3.2M3.5 17.5h2.1c1.4 0 2.3-.7 3.1-1.7M14.4 8.7c1-1.1 2-1.7 3.4-1.7h2.4" /><path d="m17 4.8 3.2 2.2-3.2 3" /></svg>;
   }
@@ -73,6 +82,12 @@ function formatBytes(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function waitForPaint() {
+  return new Promise<void>((resolve) => {
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+  });
+}
+
 type DropZone = "before" | "after" | "swap";
 
 const EDGE_ZONE = 0.28;
@@ -86,11 +101,24 @@ function getDropZone(event: DragEvent<HTMLElement>, rect: DOMRect): DropZone {
 
 export default function MediaStudio() {
   const [items, setItems] = useState<MediaItem[]>([]);
+  const [undoStack, setUndoStack] = useState<MediaItem[][]>([]);
+  const [redoStack, setRedoStack] = useState<MediaItem[][]>([]);
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [dropZone, setDropZone] = useState<{ id: string; zone: DropZone } | null>(null);
   const [isFileOver, setIsFileOver] = useState(false);
+  const [processing, setProcessing] = useState<{
+    completed: number;
+    total: number;
+    fileName: string;
+  } | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [previewIndex, setPreviewIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const itemsRef = useRef(items);
+  const objectUrlsRef = useRef<string[]>([]);
+  const previewPointerStartRef = useRef<{ x: number; y: number } | null>(null);
+  const previewWasSwipedRef = useRef(false);
+  const previewDialogRef = useRef<HTMLDivElement>(null);
 
   const lockedCount = useMemo(() => items.filter((item) => item.locked).length, [items]);
 
@@ -99,41 +127,128 @@ export default function MediaStudio() {
   }, [items]);
 
   useEffect(() => {
-    return () => itemsRef.current.forEach((item) => {
-      URL.revokeObjectURL(item.src);
-    });
+    const objectUrls = objectUrlsRef.current;
+    return () => objectUrls.forEach((url) => URL.revokeObjectURL(url));
   }, []);
+
+  useEffect(() => {
+    if (!items.length) {
+      setIsPreviewOpen(false);
+      setPreviewIndex(0);
+    } else if (previewIndex >= items.length) {
+      setPreviewIndex(items.length - 1);
+    }
+  }, [items.length, previewIndex]);
+
+  useEffect(() => {
+    if (!isPreviewOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsPreviewOpen(false);
+      if (!items.length) return;
+      if (event.key === "ArrowLeft") {
+        setPreviewIndex((current) => (current - 1 + items.length) % items.length);
+      }
+      if (event.key === "ArrowRight") {
+        setPreviewIndex((current) => (current + 1) % items.length);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [isPreviewOpen, items.length]);
+
+  useEffect(() => {
+    previewDialogRef.current?.querySelectorAll("video").forEach((video) => video.pause());
+  }, [previewIndex]);
+
+  const commitItems = (update: MediaItem[] | ((current: MediaItem[]) => MediaItem[])) => {
+    const current = itemsRef.current;
+    const next = typeof update === "function" ? update(current) : update;
+    const unchanged = next.length === current.length && next.every((item, index) => item === current[index]);
+    if (unchanged) return;
+
+    setUndoStack((stack) => [...stack, current].slice(-50));
+    setRedoStack([]);
+    itemsRef.current = next;
+    setItems(next);
+  };
+
+  const undo = () => {
+    const previous = undoStack[undoStack.length - 1];
+    if (!previous) return;
+    const current = itemsRef.current;
+    setUndoStack((stack) => stack.slice(0, -1));
+    setRedoStack((stack) => [...stack, current].slice(-50));
+    itemsRef.current = previous;
+    setItems(previous);
+  };
+
+  const redo = () => {
+    const next = redoStack[redoStack.length - 1];
+    if (!next) return;
+    const current = itemsRef.current;
+    setRedoStack((stack) => stack.slice(0, -1));
+    setUndoStack((stack) => [...stack, current].slice(-50));
+    itemsRef.current = next;
+    setItems(next);
+  };
 
   const addFiles = async (files: FileList | File[]) => {
     const acceptedFiles = Array.from(files).filter((file) => getKind(file) !== "other");
-    const next = await Promise.all(acceptedFiles.map(async (file) => {
-      let previewBlob: Blob = file;
-      let previewAvailable = true;
+    if (!acceptedFiles.length || processing) return;
 
-      if (isHeicFile(file)) {
-        try {
-          const { heicTo } = await import("heic-to");
-          previewBlob = await heicTo({ blob: file, type: "image/jpeg", quality: 0.9 });
-        } catch (error) {
-          console.error("Unable to decode HEIC file", file.name, error);
-          previewAvailable = false;
+    const next: MediaItem[] = [];
+    setProcessing({ completed: 0, total: acceptedFiles.length, fileName: acceptedFiles[0].name });
+    await waitForPaint();
+
+    try {
+      for (let index = 0; index < acceptedFiles.length; index += 1) {
+        const file = acceptedFiles[index];
+        setProcessing({ completed: index, total: acceptedFiles.length, fileName: file.name });
+        await waitForPaint();
+
+        let previewBlob: Blob = file;
+        let previewAvailable = true;
+
+        if (isHeicFile(file)) {
+          try {
+            const { heicTo } = await import("heic-to");
+            previewBlob = await heicTo({ blob: file, type: "image/jpeg", quality: 0.9 });
+          } catch (error) {
+            console.error("Unable to decode HEIC file", file.name, error);
+            previewAvailable = false;
+          }
         }
+
+        const src = URL.createObjectURL(previewBlob);
+        objectUrlsRef.current.push(src);
+        next.push({
+          id: `${file.name}-${file.lastModified}-${Math.random()}`,
+          name: file.name,
+          kind: getKind(file),
+          src,
+          locked: false,
+          size: file.size,
+          mimeType: file.type,
+          previewAvailable,
+          downloadBlob: file,
+          downloadName: file.name,
+        });
+
+        setProcessing({ completed: index + 1, total: acceptedFiles.length, fileName: file.name });
+        await waitForPaint();
       }
 
-      return {
-        id: `${file.name}-${file.lastModified}-${Math.random()}`,
-        name: file.name,
-        kind: getKind(file),
-        src: URL.createObjectURL(previewBlob),
-        locked: false,
-        size: file.size,
-        mimeType: file.type,
-        previewAvailable,
-        downloadBlob: file,
-        downloadName: file.name,
-      };
-    }));
-    if (next.length) setItems((current) => [...current, ...next]);
+      commitItems((current) => [...current, ...next]);
+    } finally {
+      setProcessing(null);
+    }
   };
 
   const onDrop = (event: DragEvent<HTMLDivElement>) => {
@@ -143,7 +258,7 @@ export default function MediaStudio() {
   };
 
   const shuffle = () => {
-    setItems((current) => {
+    commitItems((current) => {
       const movable = current.filter((item) => !item.locked);
       for (let index = movable.length - 1; index > 0; index -= 1) {
         const randomIndex = Math.floor(Math.random() * (index + 1));
@@ -156,7 +271,7 @@ export default function MediaStudio() {
 
   const swapItems = (sourceId: string, targetId: string) => {
     if (sourceId === targetId) return;
-    setItems((current) => {
+    commitItems((current) => {
       const sourceIndex = current.findIndex((item) => item.id === sourceId);
       const targetIndex = current.findIndex((item) => item.id === targetId);
       if (sourceIndex < 0 || targetIndex < 0 || current[sourceIndex].locked || current[targetIndex].locked) return current;
@@ -168,7 +283,7 @@ export default function MediaStudio() {
 
   const insertItem = (sourceId: string, targetId: string, side: "before" | "after") => {
     if (sourceId === targetId) return;
-    setItems((current) => {
+    commitItems((current) => {
       const sourceIndex = current.findIndex((item) => item.id === sourceId);
       if (sourceIndex < 0 || current[sourceIndex].locked) return current;
       const next = [...current];
@@ -182,15 +297,52 @@ export default function MediaStudio() {
   };
 
   const removeItem = (id: string) => {
-    setItems((current) => {
-      const item = current.find((entry) => entry.id === id);
-      if (item) URL.revokeObjectURL(item.src);
-      return current.filter((entry) => entry.id !== id);
-    });
+    commitItems((current) => current.filter((entry) => entry.id !== id));
   };
 
   const toggleLock = (id: string) => {
-    setItems((current) => current.map((item) => item.id === id ? { ...item, locked: !item.locked } : item));
+    commitItems((current) => current.map((item) => item.id === id ? { ...item, locked: !item.locked } : item));
+  };
+
+  const changePreview = (direction: -1 | 1) => {
+    if (items.length < 2) return;
+    setPreviewIndex((current) => (current + direction + items.length) % items.length);
+  };
+
+  const openPreview = () => {
+    if (!items.length) return;
+    setPreviewIndex(0);
+    setIsPreviewOpen(true);
+  };
+
+  const handlePreviewPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if ((event.target as HTMLElement).closest("button, video")) return;
+    previewWasSwipedRef.current = false;
+    previewPointerStartRef.current = { x: event.clientX, y: event.clientY };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handlePreviewPointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
+    const start = previewPointerStartRef.current;
+    previewPointerStartRef.current = null;
+    if (!start) return;
+
+    const deltaX = event.clientX - start.x;
+    const deltaY = event.clientY - start.y;
+    if (Math.abs(deltaX) > 45 && Math.abs(deltaX) > Math.abs(deltaY)) {
+      previewWasSwipedRef.current = true;
+      changePreview(deltaX < 0 ? 1 : -1);
+    }
+  };
+
+  const handlePreviewClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (previewWasSwipedRef.current) {
+      previewWasSwipedRef.current = false;
+      return;
+    }
+    if (items.length < 2 || (event.target as HTMLElement).closest("button, video")) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    changePreview(event.clientX < rect.left + rect.width / 2 ? -1 : 1);
   };
 
   const downloadOrder = async () => {
@@ -220,7 +372,7 @@ export default function MediaStudio() {
   };
 
   return (
-    <main className="media-page">
+    <main className="media-page" aria-busy={Boolean(processing)}>
       <section className="media-intro">
         <div>
           <h1 style={{ fontStyle: "normal" }}>मिक्सी</h1>
@@ -242,6 +394,33 @@ export default function MediaStudio() {
             <span className="media-count-divider" /> {lockedCount} locked
           </div>
           <div className="media-actions">
+            <div className="media-history-actions" aria-label="Edit history">
+              <button
+                className="media-button media-button-quiet media-button-icon"
+                onClick={undo}
+                disabled={!undoStack.length}
+                aria-label="Undo"
+                title="Undo"
+              >
+                <Icon name="undo" />
+              </button>
+              <button
+                className="media-button media-button-quiet media-button-icon"
+                onClick={redo}
+                disabled={!redoStack.length}
+                aria-label="Redo"
+                title="Redo"
+              >
+                <Icon name="redo" />
+              </button>
+            </div>
+            <button
+              className="media-button media-button-quiet"
+              onClick={openPreview}
+              disabled={!items.length}
+            >
+              <Icon name="preview" /> preview
+            </button>
             <button
               className="media-button media-button-quiet"
               onClick={shuffle}
@@ -259,6 +438,7 @@ export default function MediaStudio() {
             <button
               className="media-button media-button-dark"
               onClick={() => inputRef.current?.click()}
+              disabled={Boolean(processing)}
             >
               <Icon name="upload" /> add media
             </button>
@@ -413,6 +593,128 @@ export default function MediaStudio() {
           back home <Icon name="chevron" size={14} />
         </a>
       </footer>
+
+      {processing && (
+        <div className="media-processing-backdrop">
+          <div className="media-processing-card" role="status" aria-live="polite">
+            <div className="media-processing-spinner" aria-hidden="true" />
+            <p>one sec...</p>
+            <h2>{processing.completed === processing.total ? "Finishing up…" : "Processing…"}</h2>
+            <div className="media-processing-file" title={processing.fileName}>{processing.fileName}</div>
+            <div className="media-processing-track" aria-hidden="true">
+              <span style={{ width: `${(processing.completed / processing.total) * 100}%` }} />
+            </div>
+            <div className="media-processing-meta">
+              <span>{processing.completed} of {processing.total} complete</span>
+              <span>{Math.round((processing.completed / processing.total) * 100)}%</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isPreviewOpen && items.length > 0 && (
+        <div
+          className="media-preview-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setIsPreviewOpen(false);
+          }}
+        >
+          <div
+            className="media-preview-dialog"
+            ref={previewDialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Instagram preview"
+          >
+            <div className="media-preview-topbar">
+              <div>
+                <strong>preview</strong>
+                <span>{previewIndex + 1} / {items.length}</span>
+              </div>
+              <button
+                className="media-preview-close"
+                onClick={() => setIsPreviewOpen(false)}
+                aria-label="Close preview"
+              >
+                <Icon name="x" />
+              </button>
+            </div>
+
+            <div
+              className="media-preview-stage"
+              onPointerDown={handlePreviewPointerDown}
+              onPointerUp={handlePreviewPointerUp}
+              onPointerCancel={() => { previewPointerStartRef.current = null; }}
+              onClick={handlePreviewClick}
+            >
+              <div
+                className="media-preview-track"
+                style={{ transform: `translate3d(-${previewIndex * 100}%, 0, 0)` }}
+              >
+                {items.map((item, index) => (
+                  <div
+                    className="media-preview-slide"
+                    key={item.id}
+                    aria-hidden={index !== previewIndex}
+                  >
+                    {item.kind === "video" ? (
+                      <video
+                        src={item.src}
+                        controls={index === previewIndex}
+                        playsInline
+                        preload="metadata"
+                        tabIndex={index === previewIndex ? 0 : -1}
+                      />
+                    ) : item.previewAvailable ? (
+                      <img src={item.src} alt={item.name} draggable={false} />
+                    ) : (
+                      <div className="media-preview-unavailable">
+                        <span>HEIC</span>
+                        <strong>Preview unavailable</strong>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {items.length > 1 && (
+                <>
+                  <span className="media-preview-stack-icon" aria-hidden="true"><Icon name="preview" /></span>
+                  <button
+                    className="media-preview-arrow media-preview-arrow-previous"
+                    onClick={(event) => { event.stopPropagation(); changePreview(-1); }}
+                    aria-label="Previous item"
+                  >
+                    <Icon name="chevron" />
+                  </button>
+                  <button
+                    className="media-preview-arrow media-preview-arrow-next"
+                    onClick={(event) => { event.stopPropagation(); changePreview(1); }}
+                    aria-label="Next item"
+                  >
+                    <Icon name="chevron" />
+                  </button>
+                </>
+              )}
+            </div>
+
+            <div className="media-preview-footer">
+              <div className="media-preview-dots" aria-label="Carousel position">
+                {items.map((item, index) => (
+                  <button
+                    key={item.id}
+                    className={index === previewIndex ? "media-preview-dot media-preview-dot-active" : "media-preview-dot"}
+                    onClick={() => setPreviewIndex(index)}
+                    aria-label={`Show item ${index + 1}`}
+                    aria-current={index === previewIndex ? "true" : undefined}
+                  />
+                ))}
+              </div>
+              <span>{items[previewIndex]?.name}</span>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
