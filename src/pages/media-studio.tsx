@@ -73,10 +73,21 @@ function formatBytes(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+type DropZone = "before" | "after" | "swap";
+
+const EDGE_ZONE = 0.28;
+
+function getDropZone(event: DragEvent<HTMLElement>, rect: DOMRect): DropZone {
+  const ratio = (event.clientX - rect.left) / rect.width;
+  if (ratio < EDGE_ZONE) return "before";
+  if (ratio > 1 - EDGE_ZONE) return "after";
+  return "swap";
+}
+
 export default function MediaStudio() {
   const [items, setItems] = useState<MediaItem[]>([]);
   const [draggedId, setDraggedId] = useState<string | null>(null);
-  const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const [dropZone, setDropZone] = useState<{ id: string; zone: DropZone } | null>(null);
   const [isFileOver, setIsFileOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const itemsRef = useRef(items);
@@ -143,15 +154,29 @@ export default function MediaStudio() {
     });
   };
 
-  const moveItem = (sourceId: string, targetId: string) => {
+  const swapItems = (sourceId: string, targetId: string) => {
     if (sourceId === targetId) return;
     setItems((current) => {
       const sourceIndex = current.findIndex((item) => item.id === sourceId);
       const targetIndex = current.findIndex((item) => item.id === targetId);
       if (sourceIndex < 0 || targetIndex < 0 || current[sourceIndex].locked || current[targetIndex].locked) return current;
       const next = [...current];
+      [next[sourceIndex], next[targetIndex]] = [next[targetIndex], next[sourceIndex]];
+      return next;
+    });
+  };
+
+  const insertItem = (sourceId: string, targetId: string, side: "before" | "after") => {
+    if (sourceId === targetId) return;
+    setItems((current) => {
+      const sourceIndex = current.findIndex((item) => item.id === sourceId);
+      if (sourceIndex < 0 || current[sourceIndex].locked) return current;
+      const next = [...current];
       const [source] = next.splice(sourceIndex, 1);
-      next.splice(targetIndex, 0, source);
+      const targetIndex = next.findIndex((item) => item.id === targetId);
+      if (targetIndex < 0) return current;
+      const insertAt = side === "after" ? targetIndex + 1 : targetIndex;
+      next.splice(insertAt, 0, source);
       return next;
     });
   };
@@ -263,7 +288,7 @@ export default function MediaStudio() {
         >
           {items.map((item, index) => (
             <article
-              className={`media-card ${item.locked ? "media-card-locked" : ""} ${draggedId === item.id ? "media-card-dragging" : ""} ${dragOverId === item.id && draggedId !== item.id && !item.locked ? "media-card-drop-target" : ""}`}
+              className={`media-card ${item.locked ? "media-card-locked" : ""} ${draggedId === item.id ? "media-card-dragging" : ""} ${dropZone?.id === item.id && dropZone.zone === "swap" ? "media-card-drop-target" : ""}`}
               key={item.id}
               draggable={!item.locked}
               onDragStart={(event) => {
@@ -273,18 +298,15 @@ export default function MediaStudio() {
               }}
               onDragEnd={() => {
                 setDraggedId(null);
-                setDragOverId(null);
-              }}
-              onDragEnter={() => {
-                if (draggedId && draggedId !== item.id && !item.locked)
-                  setDragOverId(item.id);
+                setDropZone(null);
               }}
               onDragOver={(event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                event.dataTransfer.dropEffect = item.locked ? "none" : "move";
-                if (draggedId && draggedId !== item.id && !item.locked)
-                  setDragOverId(item.id);
+                if (!draggedId || draggedId === item.id) return;
+                const zone = getDropZone(event, event.currentTarget.getBoundingClientRect());
+                event.dataTransfer.dropEffect = zone === "swap" && item.locked ? "none" : "move";
+                setDropZone({ id: item.id, zone });
               }}
               onDragLeave={(event) => {
                 const relatedTarget = event.relatedTarget;
@@ -293,18 +315,28 @@ export default function MediaStudio() {
                   event.currentTarget.contains(relatedTarget)
                 )
                   return;
-                setDragOverId((current) =>
-                  current === item.id ? null : current,
+                setDropZone((current) =>
+                  current?.id === item.id ? null : current,
                 );
               }}
               onDrop={(event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                if (draggedId) moveItem(draggedId, item.id);
+                if (draggedId && draggedId !== item.id) {
+                  const zone = getDropZone(event, event.currentTarget.getBoundingClientRect());
+                  if (zone === "swap") swapItems(draggedId, item.id);
+                  else insertItem(draggedId, item.id, zone);
+                }
                 setDraggedId(null);
-                setDragOverId(null);
+                setDropZone(null);
               }}
             >
+              {dropZone?.id === item.id && dropZone.zone === "before" && (
+                <div className="media-insert-bar media-insert-bar-before" />
+              )}
+              {dropZone?.id === item.id && dropZone.zone === "after" && (
+                <div className="media-insert-bar media-insert-bar-after" />
+              )}
               <div className="media-card-image">
                 {item.kind === "video" ? (
                   <video
@@ -331,13 +363,14 @@ export default function MediaStudio() {
                   <span className="media-video-badge">video</span>
                 )}
                 <button
-                  className="media-card-lock"
+                  className={`media-card-lock ${item.locked ? "media-card-lock-active" : ""}`}
                   onClick={() => toggleLock(item.id)}
                   aria-label={
                     item.locked ? `Unlock ${item.name}` : `Lock ${item.name}`
                   }
+                  aria-pressed={item.locked}
                 >
-                  <Icon name="lock" size={15} />
+                  <Icon name={item.locked ? "lock" : "unlock"} size={15} />
                 </button>
                 <button
                   className="media-remove"
