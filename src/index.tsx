@@ -14,6 +14,7 @@ import LetterBoxd from "./pages/letterboxd";
 import Pinterest from "./pages/pinterest";
 import Valentine from "./pages/valentine";
 import MediaStudio from "./pages/media-studio";
+import Photos from "./pages/photos";
 
 const router = createBrowserRouter([
   {
@@ -55,6 +56,10 @@ const router = createBrowserRouter([
   {
     path: "/mixie",
     element: <MediaStudio />,
+  },
+  {
+    path: "/portfolio",
+    element: <Photos />,
   },
   {
     path: "*",

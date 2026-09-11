@@ -11,6 +11,9 @@
 # production
 /build
 
+# web-sized copies of src/photo-resources, made by scripts/photos.js
+/src/generated
+
 # misc
 .DS_Store
 .env.local
