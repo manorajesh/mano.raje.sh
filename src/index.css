@@ -404,7 +404,7 @@ a {
 .ph-box:hover { color: var(--ph-ink); border-color: rgba(0, 0, 0, .12); }
 .ph-box sup { font-size: 7.5px; }
 .ph-box-active, .ph-brand { color: var(--ph-ink); }
-.ph-brand span { font-size: 12px; }
+.ph-brand { text-transform: none; font-size: 12px; letter-spacing: .01em; }
 .ph-box-small { height: 36px; min-width: 78px; padding: 0 11px; font-size: 10px; }
 .ph-of { color: var(--ph-dim); }
 
@@ -425,7 +425,9 @@ a {
 /* Opening screen: stack choices over a wide shot of every stack. */
 .ph-intro { position: absolute; z-index: 3; top: 50%; left: 50%; display: flex; flex-direction: column; align-items: center; gap: 16px; transform: translate(-50%, -50%); transition: opacity .5s ease, transform .9s var(--ph-ease); }
 .ph-intro-leaving { opacity: 0; transform: translate(-50%, calc(-50% - 18px)) scale(.97); pointer-events: none; }
-.ph-intro-title { margin: 0; color: var(--ph-dim); font-size: 9.5px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; animation: ph-fade-up .8s var(--ph-ease) .15s both; }
+/* Softly blurs the stacks behind the choices, and pulls them back into focus on the way in. */
+.ph-veil { position: absolute; z-index: 2; inset: 0; background: rgba(20, 20, 20, .05); -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px); pointer-events: none; animation: ph-veil-in 1.2s ease both; transition: opacity .9s ease; }
+.ph-veil-leaving { opacity: 0; }
 .ph-intro-choices { display: flex; gap: 8px; }
 .ph-intro-choice { display: flex; height: 64px; min-width: 190px; align-items: center; gap: .35em; padding: 0 16px; border: 1px solid var(--ph-line); border-radius: 6px; color: var(--ph-ink); background: var(--ph-glass); font-size: 12px; font-weight: 500; letter-spacing: .03em; text-transform: uppercase; white-space: nowrap; cursor: pointer; box-shadow: 0 18px 40px -24px rgba(0, 0, 0, .25); transition: background .3s ease, border-color .3s ease, transform .5s var(--ph-ease), box-shadow .5s var(--ph-ease); animation: ph-fade-up .9s var(--ph-ease) both; }
 .ph-intro-choice:hover, .ph-intro-choice:focus-visible { border-color: rgba(0, 0, 0, .14); background: #ffffff; box-shadow: 0 24px 50px -24px rgba(0, 0, 0, .3); transform: translateY(-2px); }
@@ -438,6 +440,7 @@ a {
 .ph-empty p { margin: 0 0 8px; font-size: 11px; font-weight: 500; letter-spacing: .04em; }
 .ph-empty span { color: var(--ph-dim); font-size: 10px; letter-spacing: .02em; }
 
+@keyframes ph-veil-in { from { opacity: 0; } }
 @keyframes ph-fade-up { from { opacity: 0; transform: translateY(10px); } }
 @keyframes ph-rise { from { opacity: 0; transform: translate(-50%, 8px); } }
 

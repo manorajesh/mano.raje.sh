@@ -1063,9 +1063,9 @@ function Photos() {
         </div>
       )}
 
+      {intro && <div className={`ph-veil${intro === "select" ? "" : " ph-veil-leaving"}`} />}
       {intro && (
         <div className={`ph-intro${intro === "select" ? "" : " ph-intro-leaving"}`}>
-          <p className="ph-intro-title">Choose a stack</p>
           <div className="ph-intro-choices">
             {STACKS.map((s, i) => (
               <button
@@ -1089,7 +1089,7 @@ function Photos() {
 
       <nav className="ph-top">
         <a className="ph-box ph-brand" href="/">
-          Mano <span>®</span> Archive
+          lg
         </a>
         {STACKS.map((s, i) => (
           <button key={s.id} className={`ph-box${i === stackIndex ? " ph-box-active" : ""}`} onClick={() => switchStack(i)}>
