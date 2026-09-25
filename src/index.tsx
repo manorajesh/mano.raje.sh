@@ -14,7 +14,9 @@ import LetterBoxd from "./pages/letterboxd";
 import Pinterest from "./pages/pinterest";
 import Valentine from "./pages/valentine";
 import MediaStudio from "./pages/media-studio";
+import Numerals from "./pages/numerals";
 import Photos from "./pages/photos";
+import Arabic from "./pages/arabic";
 
 const router = createBrowserRouter([
   {
@@ -58,8 +60,16 @@ const router = createBrowserRouter([
     element: <MediaStudio />,
   },
   {
+    path: "/numerals",
+    element: <Numerals />,
+  },
+  {
     path: "/portfolio",
     element: <Photos />,
+  },
+  {
+    path: "/arabic",
+    element: <Arabic />,
   },
   {
     path: "*",
