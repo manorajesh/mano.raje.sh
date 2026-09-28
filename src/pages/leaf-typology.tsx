@@ -11,8 +11,8 @@ import leavesJson from "../data/leaf-typology.json";
 // of its grid cell (scissored viewports), so the DOM owns layout and the 3D
 // simply follows it. Opening a leaf grows its box from the cell to the stage.
 //
-// Each leaf lies on an unseen table (only its shadow shows), close up from straight above and lit by
-// one hard spotlight from the top left, so shadows fall to the bottom right.
+// Each leaf lies on an unseen table (only its shadow shows), seen whole from straight above in soft
+// ambient light, with a gentle key from the top left so faint shadows fall to the bottom right.
 // Models carry a small texture for the grid; `texture` is the full one for the detail view.
 type Leaf = {
   id: number;
@@ -38,19 +38,48 @@ const TOP_DOWN = Math.PI / 2 - 0.0005; // camera elevation, radians (just shy of
 const MIN_PITCH = 0.42;
 const DRAG_SPIN = 0.011; // radians per pixel
 const REVEAL_STAGGER = 70;
-// A leaf that's been turned stays put, then settles back to top down.
-const RESET_MS = 6000;
-// Framing, as a multiple of the distance that fits the whole leaf: the grid
-// crops in a little and an opened leaf starts close enough to see its surface,
-// though never so close that a screen pixel covers more than SHARPNESS texels.
-const GRID_ZOOM = 0.45;
-const DETAIL_ZOOM = 0.3;
+// Framing, as a multiple of the distance that fits the whole leaf at any turn:
+// the grid shows all of it and an opened leaf starts close enough to see its
+// surface, though never so close that a screen pixel covers more than SHARPNESS texels.
+const GRID_ZOOM = 1;
+const DETAIL_ZOOM = 0.36;
 const SHARPNESS = 2.2;
+// How each leaf has been turned outlives the page, until the reset button.
+const VIEWS_KEY = "leaf-typology:views";
 
-type Spin = { yaw: number; vel: number; pitch: number; appear: number; vAppear: number; dragging: boolean; releasedAt: number; loadedAt: number };
-// half: the leaf's half extents across (x) and down (z) the frame at rest.
+type Spin = { yaw: number; vel: number; pitch: number; appear: number; vAppear: number; dragging: boolean; resetting: boolean; loadedAt: number };
+// reach: the furthest the leaf extends from its centre across the table, so it fits whichever way it's turned.
 // texels: full-texture pixels per unit of leaf surface, which caps how close it can be viewed.
-type Model = { group: THREE.Group; floor: number; half: [number, number]; texels: number; materials: THREE.MeshStandardMaterial[] };
+type Model = { group: THREE.Group; floor: number; reach: number; texels: number; materials: THREE.MeshStandardMaterial[] };
+
+const isHome = (s: Spin) => Math.abs(s.pitch - TOP_DOWN) < 1e-3 && Math.abs(s.yaw - Math.round(s.yaw / (Math.PI * 2)) * Math.PI * 2) < 1e-3;
+
+function loadViews(): Spin[] {
+  let saved: [number, number][] = [];
+  try {
+    saved = JSON.parse(localStorage.getItem(VIEWS_KEY) ?? "[]");
+  } catch {}
+  return LEAVES.map((_, i) => {
+    const [yaw, pitch] = Array.isArray(saved[i]) ? saved[i] : [0, TOP_DOWN];
+    return {
+      yaw: Number.isFinite(yaw) ? yaw : 0,
+      pitch: Number.isFinite(pitch) ? clamp(pitch, MIN_PITCH, TOP_DOWN) : TOP_DOWN,
+      vel: 0,
+      appear: 0,
+      vAppear: 0,
+      dragging: false,
+      resetting: false,
+      loadedAt: 0,
+    };
+  });
+}
+
+function saveViews(spins: Spin[]) {
+  try {
+    if (spins.every(isHome)) localStorage.removeItem(VIEWS_KEY);
+    else localStorage.setItem(VIEWS_KEY, JSON.stringify(spins.map((s) => [+s.yaw.toFixed(4), +s.pitch.toFixed(4)])));
+  } catch {}
+}
 
 // Average texture density over a model's surface: sqrt(texels covered / surface area).
 function texelDensity(root: THREE.Object3D, scale: number) {
@@ -101,9 +130,9 @@ function LeafTypology() {
   const focusCanvasRef = useRef<HTMLCanvasElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const cellRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const spins = useRef<Spin[]>(
-    LEAVES.map(() => ({ yaw: 0, vel: 0, pitch: TOP_DOWN, appear: 0, vAppear: 0, dragging: false, releasedAt: 0, loadedAt: 0 }))
-  );
+  const spins = useRef<Spin[]>(null as unknown as Spin[]);
+  if (!spins.current) spins.current = loadViews();
+  const [turned, setTurned] = useState(() => !spins.current.every(isHome));
   const zoom = useRef({ level: DETAIL_ZOOM, anim: GRID_ZOOM, v: 0 });
   const drag = useRef<Drag | null>(null);
   const suppressClick = useRef(false);
@@ -137,7 +166,7 @@ function LeafTypology() {
       renderer.toneMapping = THREE.NeutralToneMapping;
       renderer.toneMappingExposure = 1.1;
       renderer.shadowMap.enabled = true;
-      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.shadowMap.type = THREE.PCFShadowMap;
       renderer.autoClear = false;
       renderer.setClearColor(0x000000, 0);
       return renderer;
@@ -151,22 +180,23 @@ function LeafTypology() {
     const scene = new THREE.Scene();
 
     // Seen from above, screen up is -z, so the top left of the frame is
-    // (-x, -z). A low, warm spotlight from there rakes across the leaf, pools
-    // on the table around it and throws long shadows to the bottom right; a
-    // faint fill keeps those shadows from going fully black.
-    const key = new THREE.SpotLight(0xfff1e2, 28, 0, 0.52, 1, 2);
-    key.position.set(-1.45, 1.75, -1.45);
+    // (-x, -z). A high, warm key from there gives the leaf some shape and a
+    // short, faint shadow to the bottom right; a broad fill does most of the
+    // lighting so nothing goes dark.
+    const key = new THREE.SpotLight(0xfff1e2, 16, 0, 0.8, 1, 2);
+    key.position.set(-0.9, 2.6, -0.9);
     key.target.position.set(0.25, 0, 0.25);
     key.castShadow = true;
     key.shadow.mapSize.set(2048, 2048);
     key.shadow.camera.near = 1;
     key.shadow.camera.far = 8;
     key.shadow.bias = -0.0003;
+    key.shadow.radius = 6;
     key.shadow.normalBias = 0.01;
-    const fill = new THREE.HemisphereLight(0xc8d4ff, 0x1a120c, 0.06);
+    const fill = new THREE.HemisphereLight(0xf4f1ea, 0x3a342c, 1.5);
     const LIGHTS = { key: key.intensity, fill: fill.intensity };
 
-    const table = new THREE.Mesh(new THREE.PlaneGeometry(24, 24), new THREE.ShadowMaterial({ opacity: 0.6 }));
+    const table = new THREE.Mesh(new THREE.PlaneGeometry(24, 24), new THREE.ShadowMaterial({ opacity: 0.28 }));
     table.rotation.x = -Math.PI / 2;
     table.receiveShadow = true;
     scene.add(key, key.target, fill, table);
@@ -199,7 +229,7 @@ function LeafTypology() {
             if (m.map) {
               m.map.anisotropy = anisotropy;
               m.bumpMap = m.map;
-              m.bumpScale = 2.5;
+              m.bumpScale = 1.5;
             }
             if (m.transparent || m.alphaTest > 0) {
               m.transparent = false;
@@ -217,14 +247,24 @@ function LeafTypology() {
         group.scale.setScalar(size);
         group.visible = false;
         scene.add(group);
-        const half: [number, number] = [
-          Math.max(box.max.x - sphere.center.x, sphere.center.x - box.min.x) * size,
-          Math.max(box.max.z - sphere.center.z, sphere.center.z - box.min.z) * size,
-        ];
+        let reach = 0;
+        const p = new THREE.Vector3();
+        root.updateWorldMatrix(true, true);
+        root.traverse((object) => {
+          const mesh = object as THREE.Mesh;
+          const position = mesh.isMesh ? mesh.geometry.getAttribute("position") : undefined;
+          if (!position) return;
+          for (let k = 0; k < position.count; k++) {
+            p.fromBufferAttribute(position, k).applyMatrix4(mesh.matrixWorld);
+            reach = Math.max(reach, Math.hypot(p.x, p.z));
+          }
+        });
+        // matrixWorld already carries the group's scale.
+        reach ||= 1;
         // The table sits a hair below the leaf, so even the flat cutouts cast a thin shadow.
         const grid = materials[0]?.map?.image as { width: number } | undefined;
         const texels = texelDensity(root, size) * (grid ? leaf.texture.width / grid.width : 1);
-        models[i] = { group, floor: (box.min.y - sphere.center.y) * size - 0.012, half, texels, materials };
+        models[i] = { group, floor: (box.min.y - sphere.center.y) * size - 0.012, reach, texels, materials };
         spins.current[i].loadedAt = performance.now();
       });
     });
@@ -288,13 +328,13 @@ function LeafTypology() {
       renderer.setViewport(x, height - y - h, w, h);
       renderer.setScissor(x, height - y - h, w, h);
 
-      // Frame the leaf as it lies at rest, seen from above. The framing
-      // stays put while it's turned, like a camera fixed over the table.
+      // Frame the circle the leaf sweeps as it turns, seen from above, so all
+      // of it shows however it's turned and the framing stays put, like a
+      // camera fixed over the table.
       camera.aspect = w / h;
       const vHalf = THREE.MathUtils.degToRad(FOV / 2);
       const hHalf = Math.atan(Math.tan(vHalf) * camera.aspect);
-      const [hx, hz] = model.half;
-      const fit = Math.max(hx / Math.tan(hHalf), hz / Math.tan(vHalf)) * 1.3;
+      const fit = (model.reach / Math.tan(Math.min(hHalf, vHalf))) * 1.12;
       // Screen pixels per unit at distance d are h * dpr / (2 d tan(vHalf)); keep that
       // within SHARPNESS times the texture's density.
       const nearest = (h * renderer.getPixelRatio()) / (2 * Math.tan(vHalf) * model.texels * SHARPNESS);
@@ -341,12 +381,17 @@ function LeafTypology() {
         if (!s.dragging) {
           s.yaw += s.vel * dt;
           s.vel *= Math.exp(-dt * 6);
-          // After a while untouched, turn back the short way to the top-down view.
-          if (now - s.releasedAt > RESET_MS) {
+          // Reset turns it back the short way to the top-down view.
+          if (s.resetting) {
             const home = Math.round(s.yaw / (Math.PI * 2)) * Math.PI * 2;
-            const k = 1 - Math.exp(-dt * (reduced ? 30 : 2.2));
+            const k = 1 - Math.exp(-dt * (reduced ? 30 : 4));
             s.yaw += (home - s.yaw) * k;
             s.pitch += (TOP_DOWN - s.pitch) * k;
+            if (Math.abs(home - s.yaw) < 1e-4 && TOP_DOWN - s.pitch < 1e-4) {
+              s.yaw = 0;
+              s.pitch = TOP_DOWN;
+              s.resetting = false;
+            }
           }
         }
       });
@@ -388,8 +433,13 @@ function LeafTypology() {
     };
     frame = requestAnimationFrame(tick);
 
+    const save = () => saveViews(spins.current);
+    window.addEventListener("pagehide", save);
+
     return () => {
       disposed = true;
+      save();
+      window.removeEventListener("pagehide", save);
       cancelAnimationFrame(frame);
       full?.texture?.dispose();
       scene.traverse((object) => {
@@ -414,8 +464,8 @@ function LeafTypology() {
     drag.current = { index, id: e.pointerId, x: e.clientX, y: e.clientY, lastX: e.clientX, lastY: e.clientY, lastAt: e.timeStamp, moved: false };
     suppressClick.current = false;
     spins.current[index].dragging = true;
+    spins.current[index].resetting = false;
     spins.current[index].vel = 0;
-    spins.current[index].releasedAt = Infinity;
   };
   const onPointerMove = (e: React.PointerEvent) => {
     const d = drag.current;
@@ -423,7 +473,10 @@ function LeafTypology() {
     const s = spins.current[d.index];
     const dx = e.clientX - d.lastX;
     const dy = e.clientY - d.lastY;
-    if (Math.hypot(e.clientX - d.x, e.clientY - d.y) > 6) d.moved = suppressClick.current = true;
+    if (!d.moved && Math.hypot(e.clientX - d.x, e.clientY - d.y) > 6) {
+      d.moved = suppressClick.current = true;
+      setTurned(true);
+    }
     s.yaw += dx * DRAG_SPIN;
     s.pitch = clamp(s.pitch + dy * DRAG_SPIN * 0.6, MIN_PITCH, TOP_DOWN);
     const dt = Math.max(1, e.timeStamp - d.lastAt) / 1000;
@@ -437,11 +490,26 @@ function LeafTypology() {
     if (!d || d.id !== e.pointerId) return;
     const s = spins.current[d.index];
     s.dragging = false;
-    s.releasedAt = performance.now();
     // A flick keeps spinning; a drag that stopped before release doesn't.
     if (e.timeStamp - d.lastAt > 80) s.vel = 0;
     s.vel = clamp(s.vel, -12, 12);
     drag.current = null;
+    // Saved where the flick will come to rest.
+    const yaw = s.yaw;
+    s.yaw += s.vel / 6;
+    saveViews(spins.current);
+    s.yaw = yaw;
+  };
+
+  const resetViews = () => {
+    spins.current.forEach((s) => {
+      s.vel = 0;
+      s.resetting = true;
+    });
+    try {
+      localStorage.removeItem(VIEWS_KEY);
+    } catch {}
+    setTurned(false);
   };
 
   const step = useCallback(
@@ -527,6 +595,10 @@ function LeafTypology() {
           </div>
         )}
       </div>
+
+      <button className={`lt-reset${turned && focused === null ? " lt-reset-shown" : ""}`} onClick={resetViews} tabIndex={turned && focused === null ? 0 : -1}>
+        reset view
+      </button>
 
       <canvas ref={gridCanvasRef} className="lt-canvas lt-canvas-grid" />
       <canvas ref={focusCanvasRef} className="lt-canvas lt-canvas-focus" />
