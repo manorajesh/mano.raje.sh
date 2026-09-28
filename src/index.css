@@ -587,6 +587,47 @@ a {
   .ph-card { transition: none; }
 }
 
+/* Leaf typology: a 4 x 4 plate of leaves on a table, built on the portfolio's
+   chrome (ph-*) in a dark palette. The leaves are drawn by one canvas under
+   the page's glass, into the boxes of .lt-cell and .lt-stage. */
+.lt-root {
+  --ph-bg: #0b0b0b;
+  --ph-ink: #ececec;
+  --ph-dim: #6f6f6f;
+  --ph-glass: rgba(22, 22, 22, .88);
+  --ph-line: rgba(255, 255, 255, .08);
+  background: radial-gradient(120% 90% at 30% 20%, #141414 0%, var(--ph-bg) 60%, #070707 100%);
+  color-scheme: dark;
+}
+.lt-root :focus-visible { outline-color: rgba(255, 255, 255, .5); }
+.lt-canvas { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; pointer-events: none; }
+/* Behind an open leaf the grid sinks out of focus, and comes back as it closes. */
+.lt-canvas-grid { transition: filter .45s ease; }
+.lt-focused .lt-canvas-grid { filter: blur(16px) brightness(.35); transition: filter .8s ease; }
+.lt-canvas-focus { z-index: 3; }
+
+.lt-grid { position: absolute; z-index: 2; top: 50%; left: 50%; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); gap: 8px; width: min(calc(100vw - 48px), calc((100vh - 48px) * 4 / 3)); aspect-ratio: 4 / 3; transform: translate(-50%, -50%); transition: opacity .15s ease, transform .3s var(--ph-ease); }
+.lt-focused .lt-grid { opacity: 0; transform: translate(-50%, -50%) scale(.985); pointer-events: none; transition: opacity .5s ease, transform .9s var(--ph-ease); }
+.lt-cell { position: relative; min-width: 0; min-height: 0; padding: 0; border: 1px solid var(--ph-line); border-radius: 4px; background: transparent; cursor: grab; touch-action: none; transition: border-color .3s ease; animation: ph-fade-up .9s var(--ph-ease) both; }
+.lt-cell:hover { border-color: rgba(255, 255, 255, .2); }
+.lt-cell:active { cursor: grabbing; }
+
+.lt-detail { position: absolute; z-index: 2; top: 24px; right: 24px; bottom: 24px; left: 24px; display: flex; gap: 24px; justify-content: center; pointer-events: none; }
+.lt-stage { flex: 1; min-width: 0; cursor: zoom-out; touch-action: none; }
+.lt-stage:active { cursor: grabbing; }
+.lt-focused .lt-stage { pointer-events: auto; }
+.lt-photos { display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(4, 1fr); gap: 8px; height: 100%; aspect-ratio: 2 / 3; flex: none; opacity: 0; transform: translateX(10px); transition: opacity .28s ease, transform .4s var(--ph-ease); }
+.lt-focused .lt-photos { opacity: 1; transform: none; pointer-events: auto; transition: opacity .35s ease, transform .6s var(--ph-ease); }
+.lt-photo { position: relative; min-height: 0; margin: 0; overflow: hidden; border: 1px solid var(--ph-line); border-radius: 4px; background: rgba(12, 12, 12, .55); }
+.lt-focused .lt-photo { animation: ph-fade-up .8s var(--ph-ease) both; }
+.lt-photo img { display: block; width: 100%; height: 100%; object-fit: contain; }
+
+@media (max-width: 640px), (max-aspect-ratio: 4/5) {
+  .lt-grid { width: calc(100vw - 20px); gap: 4px; aspect-ratio: 1; }
+  .lt-detail { top: max(10px, env(safe-area-inset-top)); right: 10px; bottom: max(10px, env(safe-area-inset-bottom)); left: 10px; flex-direction: column; gap: 10px; }
+  .lt-photos { width: 100%; height: auto; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); gap: 4px; aspect-ratio: 2 / 1; }
+}
+
 /* Arabic letters */
 .ar-root {
   --ar-bg: #efefef;

@@ -1,0 +1,690 @@
+[
+  {
+    "id": 1,
+    "model": "/leaves/models/leaf-01.glb",
+    "photos": [
+      {
+        "src": "/leaves/photos/leaf-01/01.webp",
+        "name": "IMG_2561"
+      },
+      {
+        "src": "/leaves/photos/leaf-01/02.webp",
+        "name": "IMG_2562"
+      },
+      {
+        "src": "/leaves/photos/leaf-01/03.webp",
+        "name": "IMG_2563"
+      },
+      {
+        "src": "/leaves/photos/leaf-01/04.webp",
+        "name": "IMG_2564"
+      },
+      {
+        "src": "/leaves/photos/leaf-01/05.webp",
+        "name": "IMG_2565"
+      },
+      {
+        "src": "/leaves/photos/leaf-01/06.webp",
+        "name": "IMG_2566"
+      },
+      {
+        "src": "/leaves/photos/leaf-01/07.webp",
+        "name": "IMG_2567"
+      },
+      {
+        "src": "/leaves/photos/leaf-01/08.webp",
+        "name": "IMG_2568"
+      }
+    ],
+    "texture": {
+      "src": "/leaves/textures/leaf-01.webp",
+      "width": 2048,
+      "height": 2048
+    }
+  },
+  {
+    "id": 2,
+    "model": "/leaves/models/leaf-02.glb",
+    "photos": [
+      {
+        "src": "/leaves/photos/leaf-02/01.webp",
+        "name": "IMG_2569"
+      },
+      {
+        "src": "/leaves/photos/leaf-02/02.webp",
+        "name": "IMG_2570"
+      },
+      {
+        "src": "/leaves/photos/leaf-02/03.webp",
+        "name": "IMG_2571"
+      },
+      {
+        "src": "/leaves/photos/leaf-02/04.webp",
+        "name": "IMG_2572"
+      },
+      {
+        "src": "/leaves/photos/leaf-02/05.webp",
+        "name": "IMG_2573"
+      },
+      {
+        "src": "/leaves/photos/leaf-02/06.webp",
+        "name": "IMG_2574"
+      },
+      {
+        "src": "/leaves/photos/leaf-02/07.webp",
+        "name": "IMG_2575"
+      },
+      {
+        "src": "/leaves/photos/leaf-02/08.webp",
+        "name": "IMG_2576"
+      }
+    ],
+    "texture": {
+      "src": "/leaves/textures/leaf-02.webp",
+      "width": 4096,
+      "height": 4096
+    }
+  },
+  {
+    "id": 3,
+    "model": "/leaves/models/leaf-03.glb",
+    "photos": [
+      {
+        "src": "/leaves/photos/leaf-03/01.webp",
+        "name": "IMG_2577"
+      },
+      {
+        "src": "/leaves/photos/leaf-03/02.webp",
+        "name": "IMG_2578"
+      },
+      {
+        "src": "/leaves/photos/leaf-03/03.webp",
+        "name": "IMG_2579"
+      },
+      {
+        "src": "/leaves/photos/leaf-03/04.webp",
+        "name": "IMG_2580"
+      },
+      {
+        "src": "/leaves/photos/leaf-03/05.webp",
+        "name": "IMG_2581"
+      },
+      {
+        "src": "/leaves/photos/leaf-03/06.webp",
+        "name": "IMG_2582"
+      },
+      {
+        "src": "/leaves/photos/leaf-03/07.webp",
+        "name": "IMG_2583"
+      },
+      {
+        "src": "/leaves/photos/leaf-03/08.webp",
+        "name": "IMG_2584"
+      }
+    ],
+    "texture": {
+      "src": "/leaves/textures/leaf-03.webp",
+      "width": 2048,
+      "height": 2048
+    }
+  },
+  {
+    "id": 4,
+    "model": "/leaves/models/leaf-04.glb",
+    "photos": [
+      {
+        "src": "/leaves/photos/leaf-04/01.webp",
+        "name": "IMG_2585"
+      },
+      {
+        "src": "/leaves/photos/leaf-04/02.webp",
+        "name": "IMG_2586"
+      },
+      {
+        "src": "/leaves/photos/leaf-04/03.webp",
+        "name": "IMG_2587"
+      },
+      {
+        "src": "/leaves/photos/leaf-04/04.webp",
+        "name": "IMG_2588"
+      },
+      {
+        "src": "/leaves/photos/leaf-04/05.webp",
+        "name": "IMG_2589"
+      },
+      {
+        "src": "/leaves/photos/leaf-04/06.webp",
+        "name": "IMG_2590"
+      },
+      {
+        "src": "/leaves/photos/leaf-04/07.webp",
+        "name": "IMG_2591"
+      },
+      {
+        "src": "/leaves/photos/leaf-04/08.webp",
+        "name": "IMG_2592"
+      }
+    ],
+    "texture": {
+      "src": "/leaves/textures/leaf-04.webp",
+      "width": 4096,
+      "height": 4096
+    }
+  },
+  {
+    "id": 5,
+    "model": "/leaves/models/leaf-05.glb",
+    "photos": [
+      {
+        "src": "/leaves/photos/leaf-05/01.webp",
+        "name": "IMG_2593"
+      },
+      {
+        "src": "/leaves/photos/leaf-05/02.webp",
+        "name": "IMG_2594"
+      },
+      {
+        "src": "/leaves/photos/leaf-05/03.webp",
+        "name": "IMG_2595"
+      },
+      {
+        "src": "/leaves/photos/leaf-05/04.webp",
+        "name": "IMG_2596"
+      },
+      {
+        "src": "/leaves/photos/leaf-05/05.webp",
+        "name": "IMG_2597"
+      },
+      {
+        "src": "/leaves/photos/leaf-05/06.webp",
+        "name": "IMG_2598"
+      },
+      {
+        "src": "/leaves/photos/leaf-05/07.webp",
+        "name": "IMG_2599"
+      },
+      {
+        "src": "/leaves/photos/leaf-05/08.webp",
+        "name": "IMG_2600"
+      }
+    ],
+    "texture": {
+      "src": "/leaves/textures/leaf-05.webp",
+      "width": 4096,
+      "height": 4096
+    }
+  },
+  {
+    "id": 6,
+    "model": "/leaves/models/leaf-06.glb",
+    "photos": [
+      {
+        "src": "/leaves/photos/leaf-06/01.webp",
+        "name": "IMG_2601"
+      },
+      {
+        "src": "/leaves/photos/leaf-06/02.webp",
+        "name": "IMG_2602"
+      },
+      {
+        "src": "/leaves/photos/leaf-06/03.webp",
+        "name": "IMG_2603"
+      },
+      {
+        "src": "/leaves/photos/leaf-06/04.webp",
+        "name": "IMG_2604"
+      },
+      {
+        "src": "/leaves/photos/leaf-06/05.webp",
+        "name": "IMG_2605"
+      },
+      {
+        "src": "/leaves/photos/leaf-06/06.webp",
+        "name": "IMG_2606"
+      },
+      {
+        "src": "/leaves/photos/leaf-06/07.webp",
+        "name": "IMG_2607"
+      },
+      {
+        "src": "/leaves/photos/leaf-06/08.webp",
+        "name": "IMG_2608"
+      }
+    ],
+    "texture": {
+      "src": "/leaves/textures/leaf-06.webp",
+      "width": 2048,
+      "height": 2048
+    }
+  },
+  {
+    "id": 7,
+    "model": "/leaves/models/leaf-07.glb",
+    "photos": [
+      {
+        "src": "/leaves/photos/leaf-07/01.webp",
+        "name": "IMG_2609"
+      },
+      {
+        "src": "/leaves/photos/leaf-07/02.webp",
+        "name": "IMG_2610"
+      },
+      {
+        "src": "/leaves/photos/leaf-07/03.webp",
+        "name": "IMG_2611"
+      },
+      {
+        "src": "/leaves/photos/leaf-07/04.webp",
+        "name": "IMG_2612"
+      },
+      {
+        "src": "/leaves/photos/leaf-07/05.webp",
+        "name": "IMG_2613"
+      },
+      {
+        "src": "/leaves/photos/leaf-07/06.webp",
+        "name": "IMG_2614"
+      },
+      {
+        "src": "/leaves/photos/leaf-07/07.webp",
+        "name": "IMG_2615"
+      },
+      {
+        "src": "/leaves/photos/leaf-07/08.webp",
+        "name": "IMG_2616"
+      }
+    ],
+    "texture": {
+      "src": "/leaves/textures/leaf-07.webp",
+      "width": 2048,
+      "height": 2048
+    }
+  },
+  {
+    "id": 8,
+    "model": "/leaves/models/leaf-08.glb",
+    "photos": [
+      {
+        "src": "/leaves/photos/leaf-08/01.webp",
+        "name": "IMG_2617"
+      },
+      {
+        "src": "/leaves/photos/leaf-08/02.webp",
+        "name": "IMG_2618"
+      },
+      {
+        "src": "/leaves/photos/leaf-08/03.webp",
+        "name": "IMG_2619"
+      },
+      {
+        "src": "/leaves/photos/leaf-08/04.webp",
+        "name": "IMG_2620"
+      },
+      {
+        "src": "/leaves/photos/leaf-08/05.webp",
+        "name": "IMG_2621"
+      },
+      {
+        "src": "/leaves/photos/leaf-08/06.webp",
+        "name": "IMG_2622"
+      },
+      {
+        "src": "/leaves/photos/leaf-08/07.webp",
+        "name": "IMG_2623"
+      },
+      {
+        "src": "/leaves/photos/leaf-08/08.webp",
+        "name": "IMG_2624"
+      }
+    ],
+    "texture": {
+      "src": "/leaves/textures/leaf-08.webp",
+      "width": 4096,
+      "height": 4096
+    }
+  },
+  {
+    "id": 9,
+    "model": "/leaves/models/leaf-09.glb",
+    "photos": [
+      {
+        "src": "/leaves/photos/leaf-09/01.webp",
+        "name": "IMG_2625"
+      },
+      {
+        "src": "/leaves/photos/leaf-09/02.webp",
+        "name": "IMG_2626"
+      },
+      {
+        "src": "/leaves/photos/leaf-09/03.webp",
+        "name": "IMG_2627"
+      },
+      {
+        "src": "/leaves/photos/leaf-09/04.webp",
+        "name": "IMG_2628"
+      },
+      {
+        "src": "/leaves/photos/leaf-09/05.webp",
+        "name": "IMG_2629"
+      },
+      {
+        "src": "/leaves/photos/leaf-09/06.webp",
+        "name": "IMG_2630"
+      },
+      {
+        "src": "/leaves/photos/leaf-09/07.webp",
+        "name": "IMG_2631"
+      },
+      {
+        "src": "/leaves/photos/leaf-09/08.webp",
+        "name": "IMG_2632"
+      }
+    ],
+    "texture": {
+      "src": "/leaves/textures/leaf-09.webp",
+      "width": 2048,
+      "height": 2048
+    }
+  },
+  {
+    "id": 10,
+    "model": "/leaves/models/leaf-10.glb",
+    "photos": [
+      {
+        "src": "/leaves/photos/leaf-10/01.webp",
+        "name": "IMG_2633"
+      },
+      {
+        "src": "/leaves/photos/leaf-10/02.webp",
+        "name": "IMG_2634"
+      },
+      {
+        "src": "/leaves/photos/leaf-10/03.webp",
+        "name": "IMG_2635"
+      },
+      {
+        "src": "/leaves/photos/leaf-10/04.webp",
+        "name": "IMG_2636"
+      },
+      {
+        "src": "/leaves/photos/leaf-10/05.webp",
+        "name": "IMG_2637"
+      },
+      {
+        "src": "/leaves/photos/leaf-10/06.webp",
+        "name": "IMG_2638"
+      },
+      {
+        "src": "/leaves/photos/leaf-10/07.webp",
+        "name": "IMG_2639"
+      },
+      {
+        "src": "/leaves/photos/leaf-10/08.webp",
+        "name": "IMG_2640"
+      }
+    ],
+    "texture": {
+      "src": "/leaves/textures/leaf-10.webp",
+      "width": 4096,
+      "height": 4096
+    }
+  },
+  {
+    "id": 11,
+    "model": "/leaves/models/leaf-11.glb",
+    "photos": [
+      {
+        "src": "/leaves/photos/leaf-11/01.webp",
+        "name": "IMG_2641"
+      },
+      {
+        "src": "/leaves/photos/leaf-11/02.webp",
+        "name": "IMG_2642"
+      },
+      {
+        "src": "/leaves/photos/leaf-11/03.webp",
+        "name": "IMG_2643"
+      },
+      {
+        "src": "/leaves/photos/leaf-11/04.webp",
+        "name": "IMG_2644"
+      },
+      {
+        "src": "/leaves/photos/leaf-11/05.webp",
+        "name": "IMG_2645"
+      },
+      {
+        "src": "/leaves/photos/leaf-11/06.webp",
+        "name": "IMG_2646"
+      },
+      {
+        "src": "/leaves/photos/leaf-11/07.webp",
+        "name": "IMG_2647"
+      },
+      {
+        "src": "/leaves/photos/leaf-11/08.webp",
+        "name": "IMG_2648"
+      }
+    ],
+    "texture": {
+      "src": "/leaves/textures/leaf-11.webp",
+      "width": 2048,
+      "height": 2048
+    }
+  },
+  {
+    "id": 12,
+    "model": "/leaves/models/leaf-12.glb",
+    "photos": [
+      {
+        "src": "/leaves/photos/leaf-12/01.webp",
+        "name": "IMG_2649"
+      },
+      {
+        "src": "/leaves/photos/leaf-12/02.webp",
+        "name": "IMG_2650"
+      },
+      {
+        "src": "/leaves/photos/leaf-12/03.webp",
+        "name": "IMG_2651"
+      },
+      {
+        "src": "/leaves/photos/leaf-12/04.webp",
+        "name": "IMG_2652"
+      },
+      {
+        "src": "/leaves/photos/leaf-12/05.webp",
+        "name": "IMG_2653"
+      },
+      {
+        "src": "/leaves/photos/leaf-12/06.webp",
+        "name": "IMG_2654"
+      },
+      {
+        "src": "/leaves/photos/leaf-12/07.webp",
+        "name": "IMG_2655"
+      },
+      {
+        "src": "/leaves/photos/leaf-12/08.webp",
+        "name": "IMG_2656"
+      }
+    ],
+    "texture": {
+      "src": "/leaves/textures/leaf-12.webp",
+      "width": 2048,
+      "height": 2048
+    }
+  },
+  {
+    "id": 13,
+    "model": "/leaves/models/leaf-13.glb",
+    "photos": [
+      {
+        "src": "/leaves/photos/leaf-13/01.webp",
+        "name": "IMG_2657"
+      },
+      {
+        "src": "/leaves/photos/leaf-13/02.webp",
+        "name": "IMG_2658"
+      },
+      {
+        "src": "/leaves/photos/leaf-13/03.webp",
+        "name": "IMG_2659"
+      },
+      {
+        "src": "/leaves/photos/leaf-13/04.webp",
+        "name": "IMG_2660"
+      },
+      {
+        "src": "/leaves/photos/leaf-13/05.webp",
+        "name": "IMG_2661"
+      },
+      {
+        "src": "/leaves/photos/leaf-13/06.webp",
+        "name": "IMG_2662"
+      },
+      {
+        "src": "/leaves/photos/leaf-13/07.webp",
+        "name": "IMG_2663"
+      },
+      {
+        "src": "/leaves/photos/leaf-13/08.webp",
+        "name": "IMG_2664"
+      }
+    ],
+    "texture": {
+      "src": "/leaves/textures/leaf-13.webp",
+      "width": 2048,
+      "height": 2048
+    }
+  },
+  {
+    "id": 14,
+    "model": "/leaves/models/leaf-14.glb",
+    "photos": [
+      {
+        "src": "/leaves/photos/leaf-14/01.webp",
+        "name": "IMG_2665"
+      },
+      {
+        "src": "/leaves/photos/leaf-14/02.webp",
+        "name": "IMG_2666"
+      },
+      {
+        "src": "/leaves/photos/leaf-14/03.webp",
+        "name": "IMG_2667"
+      },
+      {
+        "src": "/leaves/photos/leaf-14/04.webp",
+        "name": "IMG_2668"
+      },
+      {
+        "src": "/leaves/photos/leaf-14/05.webp",
+        "name": "IMG_2669"
+      },
+      {
+        "src": "/leaves/photos/leaf-14/06.webp",
+        "name": "IMG_2670"
+      },
+      {
+        "src": "/leaves/photos/leaf-14/07.webp",
+        "name": "IMG_2671"
+      },
+      {
+        "src": "/leaves/photos/leaf-14/08.webp",
+        "name": "IMG_2672"
+      }
+    ],
+    "texture": {
+      "src": "/leaves/textures/leaf-14.webp",
+      "width": 4096,
+      "height": 4096
+    }
+  },
+  {
+    "id": 15,
+    "model": "/leaves/models/leaf-15.glb",
+    "photos": [
+      {
+        "src": "/leaves/photos/leaf-15/01.webp",
+        "name": "IMG_2673"
+      },
+      {
+        "src": "/leaves/photos/leaf-15/02.webp",
+        "name": "IMG_2674"
+      },
+      {
+        "src": "/leaves/photos/leaf-15/03.webp",
+        "name": "IMG_2675"
+      },
+      {
+        "src": "/leaves/photos/leaf-15/04.webp",
+        "name": "IMG_2676"
+      },
+      {
+        "src": "/leaves/photos/leaf-15/05.webp",
+        "name": "IMG_2677"
+      },
+      {
+        "src": "/leaves/photos/leaf-15/06.webp",
+        "name": "IMG_2678"
+      },
+      {
+        "src": "/leaves/photos/leaf-15/07.webp",
+        "name": "IMG_2679"
+      },
+      {
+        "src": "/leaves/photos/leaf-15/08.webp",
+        "name": "IMG_2680"
+      }
+    ],
+    "texture": {
+      "src": "/leaves/textures/leaf-15.webp",
+      "width": 2048,
+      "height": 2048
+    }
+  },
+  {
+    "id": 16,
+    "model": "/leaves/models/leaf-16.glb",
+    "photos": [
+      {
+        "src": "/leaves/photos/leaf-16/01.webp",
+        "name": "IMG_2681"
+      },
+      {
+        "src": "/leaves/photos/leaf-16/02.webp",
+        "name": "IMG_2682"
+      },
+      {
+        "src": "/leaves/photos/leaf-16/03.webp",
+        "name": "IMG_2683"
+      },
+      {
+        "src": "/leaves/photos/leaf-16/04.webp",
+        "name": "IMG_2684"
+      },
+      {
+        "src": "/leaves/photos/leaf-16/05.webp",
+        "name": "IMG_2685"
+      },
+      {
+        "src": "/leaves/photos/leaf-16/06.webp",
+        "name": "IMG_2686"
+      },
+      {
+        "src": "/leaves/photos/leaf-16/07.webp",
+        "name": "IMG_2687"
+      },
+      {
+        "src": "/leaves/photos/leaf-16/08.webp",
+        "name": "IMG_2688"
+      }
+    ],
+    "texture": {
+      "src": "/leaves/textures/leaf-16.webp",
+      "width": 2048,
+      "height": 2048
+    }
+  }
+]

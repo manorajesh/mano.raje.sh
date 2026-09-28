@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import ReactDOM from "react-dom/client";
 import Home from "./pages/home";
 import { ErrorPage } from "./components/ErrorPage";
@@ -17,6 +17,9 @@ import MediaStudio from "./pages/media-studio";
 import Numerals from "./pages/numerals";
 import Photos from "./pages/photos";
 import Arabic from "./pages/arabic";
+
+// Loaded on demand so three.js stays out of every other page's bundle.
+const LeafTypology = lazy(() => import("./pages/leaf-typology"));
 
 const router = createBrowserRouter([
   {
@@ -70,6 +73,14 @@ const router = createBrowserRouter([
   {
     path: "/arabic",
     element: <Arabic />,
+  },
+  {
+    path: "/leaf-typology",
+    element: (
+      <Suspense fallback={null}>
+        <LeafTypology />
+      </Suspense>
+    ),
   },
   {
     path: "*",
