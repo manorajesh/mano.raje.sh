@@ -632,6 +632,91 @@ a {
   .lt-photos { width: 100%; height: auto; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); gap: 4px; aspect-ratio: 2 / 1; }
 }
 
+/* City steps: lidar walks replayed in 3D, on the portfolio's chrome (ph-*) in the
+   leaf typology's dark palette. One canvas under the glass draws the walk, or
+   each flight of steps into the box of its .cs-cell. */
+.cs-root {
+  --ph-bg: #0b0b0b;
+  --ph-ink: #ececec;
+  --ph-dim: #6f6f6f;
+  --ph-glass: rgba(22, 22, 22, .88);
+  --ph-line: rgba(255, 255, 255, .08);
+  background: radial-gradient(120% 90% at 30% 20%, #141414 0%, var(--ph-bg) 60%, #070707 100%);
+  color-scheme: dark;
+}
+.cs-root :focus-visible { outline-color: rgba(255, 255, 255, .5); }
+.cs-root .ph-box:hover { border-color: rgba(255, 255, 255, .16); }
+.cs-root .ph-pill-active { color: #0b0b0b; background: var(--ph-ink); }
+.cs-root .ph-box b { color: var(--ph-ink); font-weight: 500; font-variant-numeric: tabular-nums; margin-left: .5em; }
+.cs-canvas { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; display: block; touch-action: none; }
+.cs-root .ph-top, .cs-root .ph-bottom, .cs-root .ph-hint, .cs-root .ph-title, .cs-root .lt-reset { z-index: 3; }
+.cs-box-static { cursor: default; }
+.cs-box-static:hover { color: var(--ph-dim); }
+.cs-box-static.ph-box-active:hover { color: var(--ph-ink); }
+
+.cs-readouts { position: absolute; z-index: 3; top: max(12px, env(safe-area-inset-top)); right: 12px; display: flex; gap: 6px; }
+.cs-readouts .ph-box { min-width: 0; }
+.cs-hint { top: calc(max(12px, env(safe-area-inset-top)) + 58px); bottom: auto; transition: opacity .8s ease; }
+.cs-hint-hidden { opacity: 0; }
+.cs-title { bottom: calc(max(12px, env(safe-area-inset-bottom)) + 62px); pointer-events: auto; }
+.cs-link { padding: 0; border: 0; background: none; color: var(--ph-ink); font: inherit; letter-spacing: inherit; text-transform: inherit; text-decoration: underline; text-decoration-color: var(--ph-dim); text-underline-offset: 3px; cursor: pointer; }
+
+.cs-label { color: var(--ph-dim); font-size: 9px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; }
+.cs-stairs { position: absolute; z-index: 3; left: 12px; bottom: calc(max(12px, env(safe-area-inset-bottom)) + 48px); display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
+.cs-stairs .ph-pill-active { transform: translateX(4px); }
+.cs-swatch { display: inline-block; width: 6px; height: 6px; margin-right: 7px; border-radius: 50%; vertical-align: 1px; }
+
+.cs-controls { position: absolute; z-index: 3; right: 12px; bottom: calc(max(12px, env(safe-area-inset-bottom)) + 48px); display: flex; align-items: flex-end; gap: 14px; }
+.cs-group { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+.cs-group .cs-label { margin-bottom: 2px; }
+.cs-root .ph-pill sup { margin-left: .35em; color: var(--ph-dim); }
+.cs-root .ph-pill-active sup { color: #555; }
+.cs-range { display: flex; align-items: center; gap: 8px; cursor: default; }
+.cs-range input { width: 72px; accent-color: var(--ph-ink); }
+.cs-legend { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 8px; width: 120px; color: var(--ph-dim); font-size: 8.5px; letter-spacing: .04em; text-transform: uppercase; }
+.cs-legend i { grid-column: 1 / -1; height: 4px; border-radius: 2px; }
+.cs-legend span:last-child { text-align: right; }
+.cs-display { display: none; }
+
+.cs-transport { align-items: center; }
+.cs-play { min-width: 36px; width: 36px; justify-content: center; padding: 0; color: var(--ph-ink); }
+.cs-play svg { width: 11px; height: 11px; fill: currentColor; }
+.cs-clock { min-width: 112px; }
+.cs-timeline { position: absolute; z-index: 3; left: 316px; right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); height: 36px; border: 1px solid var(--ph-line); border-radius: 5px; background: var(--ph-glass); overflow: hidden; }
+.cs-timeline canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.cs-timeline input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+
+/* The plate of flights: drag a cell to turn it, click to open it. */
+.cs-plate .cs-canvas { pointer-events: none; }
+.cs-grid { position: absolute; z-index: 2; top: calc(max(12px, env(safe-area-inset-top)) + 58px); right: 12px; bottom: calc(max(12px, env(safe-area-inset-bottom)) + 48px); left: 12px; display: grid; grid-template-columns: repeat(6, 1fr); grid-auto-rows: 1fr; gap: 8px; }
+.cs-cell { position: relative; grid-column: span 2; min-width: 0; min-height: 0; padding: 0; border: 1px solid var(--ph-line); border-radius: 4px; background: transparent; color: inherit; font: inherit; text-align: left; cursor: grab; touch-action: none; transition: border-color .3s ease; animation: ph-fade-up .9s var(--ph-ease) both; }
+.cs-cell:hover { border-color: rgba(255, 255, 255, .2); }
+.cs-cell:active { cursor: grabbing; }
+.cs-cell-name { position: absolute; top: 12px; left: 12px; color: var(--ph-ink); font-size: 10.5px; font-weight: 500; letter-spacing: .03em; text-transform: uppercase; pointer-events: none; }
+.cs-cell-name sup { margin-left: .5em; color: var(--ph-dim); font-size: 7.5px; }
+.cs-cell-meta { position: absolute; bottom: 12px; left: 12px; color: var(--ph-dim); font-size: 9.5px; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; pointer-events: none; }
+
+.cs-loading { position: absolute; z-index: 4; top: 50%; left: 50%; display: grid; gap: 10px; justify-items: center; text-align: center; text-transform: uppercase; transform: translate(-50%, -50%); pointer-events: none; }
+.cs-loading p { margin: 0; font-size: 10.5px; font-weight: 500; letter-spacing: .04em; }
+.cs-loading span { display: block; width: 160px; height: 1px; background: var(--ph-line); }
+.cs-loading i { display: block; height: 100%; background: var(--ph-ink); transition: width .15s ease; }
+.cs-loading-error p { color: var(--ph-dim); }
+
+@media (max-width: 900px) {
+  .cs-readouts { top: calc(max(12px, env(safe-area-inset-top)) + 54px); right: auto; left: 10px; overflow-x: auto; max-width: calc(100% - 20px); scrollbar-width: none; }
+  .cs-hint { display: none; }
+  .cs-display { position: absolute; z-index: 3; right: 10px; bottom: calc(max(12px, env(safe-area-inset-bottom)) + 44px); display: flex; min-width: 0; }
+  .cs-controls { display: none; right: 10px; bottom: calc(max(12px, env(safe-area-inset-bottom)) + 86px); padding: 12px; border: 1px solid var(--ph-line); border-radius: 6px; background: var(--ph-glass); }
+  .cs-controls-open { display: flex; }
+  .cs-stairs { left: 10px; bottom: calc(max(12px, env(safe-area-inset-bottom)) + 86px); max-height: 40vh; overflow-y: auto; }
+  .cs-transport { left: 10px; }
+  .cs-timeline { left: 10px; right: 10px; bottom: calc(max(12px, env(safe-area-inset-bottom)) + 44px); right: 96px; }
+  .cs-root .ph-bottom { bottom: max(12px, env(safe-area-inset-bottom)); }
+  .cs-title { display: none; }
+  .cs-grid { top: calc(max(12px, env(safe-area-inset-top)) + 54px); right: 10px; left: 10px; grid-template-columns: 1fr; grid-auto-rows: minmax(220px, 1fr); overflow-y: auto; }
+  .cs-cell { grid-column: auto !important; }
+}
+
 /* Arabic letters */
 .ar-root {
   --ar-bg: #efefef;
