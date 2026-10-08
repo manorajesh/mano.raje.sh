@@ -16,6 +16,7 @@ const SCAN_HEIGHT = -0.19; // scan plane below the camera lens, m
 const SCANS_PER_S = 9.37;
 const BG = new THREE.Color(0x0b0b0b);
 const INK = 0xececec;
+const GOLD = 0xffb612; // Pittsburgh gold: the path walked so far, the rig and the playhead
 // Behind each flight on the plate: a darker, partly opaque ground, so the points stand off the map lines.
 const CELL_GROUND = 0x050505;
 const CELL_GROUND_ALPHA = 0.4;
@@ -292,15 +293,15 @@ export class CityScene {
 
     // The rig: a dot, a soft halo and the 180° scan fan, pointing forward (-z).
     this.halo = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: radialTexture([[0, "rgba(255,255,255,1)"], [0.25, "rgba(255,255,255,0.35)"], [1, "rgba(255,255,255,0)"]]),
+      map: radialTexture([[0, "rgba(255,214,120,1)"], [0.25, "rgba(255,182,18,0.4)"], [1, "rgba(255,182,18,0)"]]),
       blending: THREE.AdditiveBlending, depthWrite: false, transparent: true,
     }));
     this.halo.scale.set(1.2, 1.2, 1.2);
-    this.dot = new THREE.Mesh(new THREE.SphereGeometry(0.08, 20, 14), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+    this.dot = new THREE.Mesh(new THREE.SphereGeometry(0.08, 20, 14), new THREE.MeshBasicMaterial({ color: 0xffe2a0 }));
     const fanGeo = new THREE.CircleGeometry(2.2, 48, 0, Math.PI);
     fanGeo.rotateX(-Math.PI / 2);
     this.fan = new THREE.Mesh(fanGeo, new THREE.MeshBasicMaterial({
-      map: radialTexture([[0, "rgba(255,255,255,0.22)"], [1, "rgba(255,255,255,0)"]]),
+      map: radialTexture([[0, "rgba(255,182,18,0.26)"], [1, "rgba(255,182,18,0)"]]),
       transparent: true, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending,
     }));
     this.fan.position.y = SCAN_HEIGHT;
@@ -423,7 +424,7 @@ export class CityScene {
     this.pathAll = new THREE.Line(g1, new THREE.LineBasicMaterial({ color: INK, transparent: true, opacity: 0.14 }));
     const g2 = new THREE.BufferGeometry();
     g2.setAttribute("position", new THREE.BufferAttribute(arr, 3));
-    this.pathDone = new THREE.Line(g2, new THREE.LineBasicMaterial({ color: INK, transparent: true, opacity: 0.8 }));
+    this.pathDone = new THREE.Line(g2, new THREE.LineBasicMaterial({ color: GOLD, transparent: true, opacity: 0.85 }));
     this.scene.add(this.pathAll, this.pathDone);
     if (entry.kind !== "walk" && this.color === 5) this.setColor(0);
     if (this.readouts.scrub) this.readouts.scrub.max = String(entry.duration);
@@ -688,13 +689,13 @@ export class CityScene {
       g.fillRect(X(a), 0, Math.max(1, X(b) - X(a)), h);
     }));
     g.save(); trace(); g.fillStyle = "rgba(236,236,236,0.05)"; g.fill(); g.restore();
-    g.save(); g.beginPath(); g.rect(0, 0, prog, h); g.clip(); trace(); g.fillStyle = "rgba(236,236,236,0.16)"; g.fill(); g.restore();
+    g.save(); g.beginPath(); g.rect(0, 0, prog, h); g.clip(); trace(); g.fillStyle = "rgba(255,182,18,0.16)"; g.fill(); g.restore();
     g.beginPath();
     P.forEach((p, i) => (i ? g.lineTo(X(p[0]), Y(p[2])) : g.moveTo(X(p[0]), Y(p[2]))));
     g.strokeStyle = "rgba(236,236,236,0.4)";
     g.lineWidth = dpr;
     g.stroke();
-    g.fillStyle = "#ececec";
+    g.fillStyle = "#ffb612";
     g.fillRect(prog - dpr / 2, 0, dpr, h);
   }
 

@@ -225,7 +225,7 @@ function CitySteps() {
 
       <nav className="ph-top">
         <button className="ph-box ph-brand" onClick={openPlate}>
-          pgh city steps
+          <span className="cs-pgh">pgh</span>city steps
         </button>
         {flights.length > 0 && (
           <button className={`ph-box${plate || cur?.kind === "stairs" ? " ph-box-active" : ""}`} onClick={openPlate}>

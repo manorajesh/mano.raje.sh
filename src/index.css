@@ -641,9 +641,11 @@ a {
   --ph-dim: #6f6f6f;
   --ph-glass: rgba(22, 22, 22, .88);
   --ph-line: rgba(255, 255, 255, .08);
+  --cs-gold: #ffb612; /* Pittsburgh's black and gold, used sparingly */
   background: radial-gradient(120% 90% at 30% 20%, #141414 0%, var(--ph-bg) 60%, #070707 100%);
   color-scheme: dark;
 }
+.cs-pgh { color: var(--cs-gold); }
 .cs-root :focus-visible { outline-color: rgba(255, 255, 255, .5); }
 .cs-root .ph-box:hover { border-color: rgba(255, 255, 255, .16); }
 .cs-root .ph-pill-active { color: #0b0b0b; background: var(--ph-ink); }
