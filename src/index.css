@@ -649,6 +649,9 @@ a {
 .cs-root .ph-pill-active { color: #0b0b0b; background: var(--ph-ink); }
 .cs-root .ph-box b { color: var(--ph-ink); font-weight: 500; font-variant-numeric: tabular-nums; margin-left: .5em; }
 .cs-canvas { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; display: block; touch-action: none; }
+/* While anything loads the scene sinks out of focus, then settles back when it's ready. */
+.cs-canvas { transition: filter .55s var(--ph-ease); }
+.cs-busy .cs-canvas { filter: blur(14px) brightness(.55); transition: filter .2s ease .1s; }
 .cs-root .ph-top, .cs-root .ph-bottom, .cs-root .ph-hint, .cs-root .ph-title, .cs-root .lt-reset { z-index: 3; }
 .cs-box-static { cursor: default; }
 .cs-box-static:hover { color: var(--ph-dim); }
@@ -705,6 +708,10 @@ a {
 .cs-loading span { display: block; width: 160px; height: 1px; background: var(--ph-line); }
 .cs-loading i { display: block; height: 100%; background: var(--ph-ink); transition: width .15s ease; }
 .cs-loading-error p { color: var(--ph-dim); }
+
+@media (prefers-reduced-motion: reduce) {
+  .cs-canvas, .cs-busy .cs-canvas { transition: none; }
+}
 
 @media (max-width: 900px) {
   .cs-readouts { top: calc(max(12px, env(safe-area-inset-top)) + 54px); right: auto; left: 10px; overflow-x: auto; max-width: calc(100% - 20px); scrollbar-width: none; }

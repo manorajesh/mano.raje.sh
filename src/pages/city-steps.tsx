@@ -195,7 +195,7 @@ function CitySteps() {
   const lastRow = flights.length % 3;
 
   return (
-    <div className={`ph-root cs-root${plate ? " cs-plate" : ""}`}>
+    <div className={`ph-root cs-root${plate ? " cs-plate" : ""}${loading ? " cs-busy" : ""}`}>
       <canvas ref={canvasRef} className="cs-canvas" aria-label="3D point cloud" />
 
       <nav className="ph-top">
