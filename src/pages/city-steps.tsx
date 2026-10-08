@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { CityScene, COLORS, Entry, STAIR_HUES, View, fmt } from "../components/city-steps/scene";
+import { BASE, CityScene, COLORS, Entry, STAIR_HUES, View, fmt } from "../components/city-steps/scene";
 
 // Walks around a hillside neighborhood, scanned with a SICK LMS200 lidar and an
 // Insta360 X3, replayed in 3D. The page opens on a plate of every flight of steps;
@@ -34,6 +34,8 @@ const HINTS: Record<View, string> = {
   video: "The 360 video around the camera, with the lidar in place · drag to look around",
 };
 
+const STATS_KEY = "city-steps:stats";
+
 const millions = (n: number) => (n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : `${Math.round(n / 1e3)}k`);
 
 function CitySteps() {
@@ -59,6 +61,23 @@ function CitySteps() {
   const [turned, setTurned] = useState(false);
   const [controlsOpen, setControlsOpen] = useState(false);
   const [hintShown, setHintShown] = useState(true);
+  // Stats for nerds: rise, run, point counts, color modes. Off by default; the choice is remembered.
+  const [stats, setStats] = useState(() => {
+    try {
+      return localStorage.getItem(STATS_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
+  const toggleStats = useCallback(() => {
+    setStats((on) => {
+      try {
+        if (on) localStorage.removeItem(STATS_KEY);
+        else localStorage.setItem(STATS_KEY, "1");
+      } catch {}
+      return !on;
+    });
+  }, []);
 
   // No ?walk shows the plate of flights; ?walk=<id> opens a walk or a single flight.
   const walkId = params.get("walk");
@@ -69,7 +88,7 @@ function CitySteps() {
 
   useEffect(() => {
     const title = document.title;
-    document.title = "city steps — mano";
+    document.title = "pgh city steps — mano";
     return () => {
       document.title = title;
     };
@@ -195,12 +214,18 @@ function CitySteps() {
   const lastRow = flights.length % 3;
 
   return (
-    <div className={`ph-root cs-root${plate ? " cs-plate" : ""}${loading ? " cs-busy" : ""}`}>
+    <div
+      className={`ph-root cs-root${plate ? " cs-plate" : ""}${loading ? " cs-busy" : ""}${stats ? "" : " cs-stats-off"}`}
+      style={{ "--cs-map": `url(${BASE}pittsburgh.webp)` } as React.CSSProperties}
+    >
       <canvas ref={canvasRef} className="cs-canvas" aria-label="3D point cloud" />
+      <a className="cs-credit" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">
+        Map data © OpenStreetMap contributors
+      </a>
 
       <nav className="ph-top">
         <button className="ph-box ph-brand" onClick={openPlate}>
-          city steps
+          pgh city steps
         </button>
         {flights.length > 0 && (
           <button className={`ph-box${plate || cur?.kind === "stairs" ? " ph-box-active" : ""}`} onClick={openPlate}>
@@ -230,6 +255,51 @@ function CitySteps() {
           ))}
       </nav>
 
+      <div className="cs-readouts" aria-label="Readouts">
+        <div className="cs-collapse" aria-hidden={!stats}>
+          <div className="cs-clip">
+          <div className="cs-stat-row">
+          {!plate && cur && (cur.kind === "walk" ? (
+            <>
+              <span className="ph-box ph-box-small cs-box-static">
+                Points <b>{cur.count.toLocaleString()}</b>
+              </span>
+              <span className="ph-box ph-box-small cs-box-static">
+                Walked <b>{Math.round(cur.distance_m)} m</b>
+              </span>
+              <span className="ph-box ph-box-small cs-box-static">
+                Elevation <b ref={readout("elevation")}>–</b>
+              </span>
+              <span className="ph-box ph-box-small cs-box-static">
+                Scans <b ref={readout("scans")}>–</b>
+              </span>
+            </>
+          ) : (
+            <>
+              <span className="ph-box ph-box-small cs-box-static">Rise <b>{cur.rise_m} m</b></span>
+              <span className="ph-box ph-box-small cs-box-static">Run <b>{cur.run_m} m</b></span>
+              <span className="ph-box ph-box-small cs-box-static">Steps <b>~{cur.steps_est}</b></span>
+              <span className="ph-box ph-box-small cs-box-static">Slope <b>{cur.slope_deg}°</b></span>
+            </>
+          ))}
+          </div>
+          </div>
+        </div>
+        <button
+          className={`ph-box ph-box-small cs-eye${stats ? " ph-box-active" : ""}`}
+          aria-pressed={stats}
+          aria-label="Stats for nerds"
+          title={stats ? "Hide stats for nerds" : "Stats for nerds"}
+          onClick={toggleStats}
+        >
+          <svg viewBox="0 0 20 14" aria-hidden="true">
+            <path d="M1 7s3.2-5.5 9-5.5S19 7 19 7s-3.2 5.5-9 5.5S1 7 1 7z" />
+            <circle cx="10" cy="7" r="2.4" />
+            {!stats && <path d="M3 13 17 1" />}
+          </svg>
+        </button>
+      </div>
+
       {plate ? (
         <>
           <div className="cs-grid">
@@ -255,7 +325,9 @@ function CitySteps() {
                   {f.name}
                   <sup>{byId.get(f.parent!)?.name}</sup>
                 </span>
-                <span className="cs-cell-meta">{flightFacts(f)}</span>
+                <span className="cs-cell-meta" aria-hidden={!stats}>
+                  {flightFacts(f)}
+                </span>
               </button>
             ))}
           </div>
@@ -267,32 +339,6 @@ function CitySteps() {
       ) : (
         cur && (
           <>
-            <div className="cs-readouts" aria-label="Readouts">
-              {cur.kind === "walk" ? (
-                <>
-                  <span className="ph-box ph-box-small cs-box-static">
-                    Points <b>{cur.count.toLocaleString()}</b>
-                  </span>
-                  <span className="ph-box ph-box-small cs-box-static">
-                    Walked <b>{Math.round(cur.distance_m)} m</b>
-                  </span>
-                  <span className="ph-box ph-box-small cs-box-static">
-                    Elevation <b ref={readout("elevation")}>–</b>
-                  </span>
-                  <span className="ph-box ph-box-small cs-box-static">
-                    Scans <b ref={readout("scans")}>–</b>
-                  </span>
-                </>
-              ) : (
-                <>
-                  <span className="ph-box ph-box-small cs-box-static">Rise <b>{cur.rise_m} m</b></span>
-                  <span className="ph-box ph-box-small cs-box-static">Run <b>{cur.run_m} m</b></span>
-                  <span className="ph-box ph-box-small cs-box-static">Steps <b>~{cur.steps_est}</b></span>
-                  <span className="ph-box ph-box-small cs-box-static">Slope <b>{cur.slope_deg}°</b></span>
-                </>
-              )}
-            </div>
-
             <div className={`ph-hint cs-hint${hintShown ? "" : " cs-hint-hidden"}`}>{note || HINTS[view]}</div>
 
             {isolated && (
@@ -300,7 +346,9 @@ function CitySteps() {
                 <span>{cur.name}</span>
                 {isolated.name}
                 <em>
-                  {flightFacts(isolated)} ·{" "}
+                  <span className="cs-collapse cs-collapse-inline" aria-hidden={!stats}>
+                    <span className="cs-clip">{flightFacts(isolated)} · </span>
+                  </span>
                   <button className="cs-link" onClick={() => openWalk(isolated.id)}>
                     open on its own
                   </button>
@@ -332,7 +380,9 @@ function CitySteps() {
               Display
             </button>
             <div className={`cs-controls${controlsOpen ? " cs-controls-open" : ""}`}>
-              <div className="cs-group">
+              <div className="cs-collapse" aria-hidden={!stats}>
+                <div className="cs-clip">
+              <div className="cs-group cs-group-stats">
                 <span className="cs-label">Points</span>
                 <button className={`ph-pill${live ? " ph-pill-active" : ""}`} onClick={() => { s?.setLive(!live); setLive(!live); }}>
                   Live · 3 s
@@ -352,6 +402,29 @@ function CitySteps() {
                 >
                   Size · {SIZES[size].label}
                 </button>
+              </div>
+                </div>
+              </div>
+              <div className="cs-collapse" aria-hidden={!stats}>
+                <div className="cs-clip">
+              <div className="cs-group cs-group-stats">
+                <span className="cs-label">Color</span>
+                {COLORS.map((label, c) =>
+                  c === 5 && cur.kind !== "walk" ? null : (
+                    <button key={label} className={`ph-pill${color === c ? " ph-pill-active" : ""}`} onClick={() => changeColor(c)}>
+                      {label}
+                    </button>
+                  )
+                )}
+                {LEGENDS[color] && (
+                  <div className="cs-legend">
+                    <i style={{ background: LEGENDS[color] }} />
+                    <span>{legendEnds[color][0]}</span>
+                    <span>{legendEnds[color][1]}</span>
+                  </div>
+                )}
+              </div>
+                </div>
               </div>
               <div className="cs-group">
                 <span className="cs-label">Camera</span>
@@ -376,23 +449,6 @@ function CitySteps() {
                       }}
                     />
                   </label>
-                )}
-              </div>
-              <div className="cs-group">
-                <span className="cs-label">Color</span>
-                {COLORS.map((label, c) =>
-                  c === 5 && cur.kind !== "walk" ? null : (
-                    <button key={label} className={`ph-pill${color === c ? " ph-pill-active" : ""}`} onClick={() => changeColor(c)}>
-                      {label}
-                    </button>
-                  )
-                )}
-                {LEGENDS[color] && (
-                  <div className="cs-legend">
-                    <i style={{ background: LEGENDS[color] }} />
-                    <span>{legendEnds[color][0]}</span>
-                    <span>{legendEnds[color][1]}</span>
-                  </div>
                 )}
               </div>
             </div>

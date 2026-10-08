@@ -16,6 +16,9 @@ const SCAN_HEIGHT = -0.19; // scan plane below the camera lens, m
 const SCANS_PER_S = 9.37;
 const BG = new THREE.Color(0x0b0b0b);
 const INK = 0xececec;
+// Behind each flight on the plate: a darker, partly opaque ground, so the points stand off the map lines.
+const CELL_GROUND = 0x050505;
+const CELL_GROUND_ALPHA = 0.4;
 
 export type PathRow = number[]; // t, x, y, z, forward xyz, three_from_cam quaternion xyzw
 export type Stair = {
@@ -893,8 +896,11 @@ export class CityScene {
       const y = H - r.bottom;
       R.setViewport(r.left, y, r.width, r.height);
       R.setScissor(r.left, y, r.width, r.height);
+      R.setClearColor(CELL_GROUND, CELL_GROUND_ALPHA);
+      R.clear();
       R.render(c.scene, c.cam);
     }
+    R.setClearColor(0x000000, 0);
     R.setScissorTest(false);
   }
 }

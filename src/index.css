@@ -648,6 +648,18 @@ a {
 .cs-root .ph-box:hover { border-color: rgba(255, 255, 255, .16); }
 .cs-root .ph-pill-active { color: #0b0b0b; background: var(--ph-ink); }
 .cs-root .ph-box b { color: var(--ph-ink); font-weight: 500; font-variant-numeric: tabular-nums; margin-left: .5em; }
+/* Roads, rails and rivers around the Golden Triangle (OpenStreetMap), white on black and screened
+   onto the background at a whisper, so it reads as texture. */
+.cs-root::before { content: ""; position: absolute; inset: 0; z-index: 0; background: var(--cs-map) 42% 46% / cover no-repeat;
+  opacity: .035; mix-blend-mode: screen; pointer-events: none; transition: opacity .7s ease;
+  -webkit-mask-image: radial-gradient(120% 95% at 45% 45%, #000 45%, transparent 100%); mask-image: radial-gradient(120% 95% at 45% 45%, #000 45%, transparent 100%); }
+/* Opening a walk or flight dims the background a little; the home view brings it back. */
+.cs-root::after { content: ""; position: absolute; inset: 0; z-index: 0; background: #050505; opacity: 0; pointer-events: none; transition: opacity .7s ease; }
+.cs-root:not(.cs-plate)::before { opacity: .018; }
+.cs-root:not(.cs-plate)::after { opacity: .45; }
+.cs-root .cs-credit { position: absolute; z-index: 3; left: 12px; bottom: max(1px, calc(env(safe-area-inset-bottom) - 11px)); color: #2a2a2a; font-size: 7px;
+  line-height: 8px; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; transition: color .25s ease; }
+.cs-root .cs-credit:hover { color: var(--ph-dim); }
 .cs-canvas { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; display: block; touch-action: none; }
 /* While anything loads the scene sinks out of focus, then settles back when it's ready. */
 .cs-canvas { transition: filter .55s var(--ph-ease); }
@@ -685,6 +697,20 @@ a {
 .cs-legend span:last-child { text-align: right; }
 .cs-display { display: none; }
 
+/* Stats for nerds: the eye shows or hides readouts, point and color options, and flight figures.
+   A plain fade both ways. Hidden pieces keep their place, so nothing around them moves. */
+.cs-root { --cs-stats-time: .35s; }
+.cs-collapse, .cs-cell-meta { opacity: 1; visibility: visible; transition: opacity var(--cs-stats-time) ease, visibility 0s linear 0s; }
+.cs-stats-off .cs-collapse, .cs-stats-off .cs-cell-meta { opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity var(--cs-stats-time) ease, visibility 0s linear var(--cs-stats-time); }
+.cs-collapse-inline { display: inline; }
+.cs-readouts { gap: 0; }
+.cs-readouts .cs-stat-row { display: flex; gap: 6px; padding-right: 6px; }
+.cs-controls { gap: 0; }
+.cs-group-stats { padding: 0 14px 0 6px; }
+.cs-eye { min-width: 46px; width: 46px; justify-content: center; padding: 0; }
+.cs-eye svg { width: 17px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; }
+
 .cs-transport { align-items: center; }
 .cs-play { min-width: 36px; width: 36px; justify-content: center; padding: 0; color: var(--ph-ink); }
 .cs-play svg { width: 11px; height: 11px; fill: currentColor; }
@@ -711,14 +737,19 @@ a {
 
 @media (prefers-reduced-motion: reduce) {
   .cs-canvas, .cs-busy .cs-canvas { transition: none; }
+  .cs-root { --cs-stats-time: 0s; }
+  .cs-root::before, .cs-root::after { transition: none; }
 }
 
 @media (max-width: 900px) {
-  .cs-readouts { top: calc(max(12px, env(safe-area-inset-top)) + 54px); right: auto; left: 10px; overflow-x: auto; max-width: calc(100% - 20px); scrollbar-width: none; }
+  .cs-readouts { top: calc(max(12px, env(safe-area-inset-top)) + 54px); right: 10px; left: 10px; justify-content: flex-end; overflow-x: auto; scrollbar-width: none; }
+  .cs-readouts > .cs-collapse { margin-right: auto; }
+  .cs-eye { height: 38px; min-width: 38px; width: 38px; flex: none; }
   .cs-hint { display: none; }
   .cs-display { position: absolute; z-index: 3; right: 10px; bottom: calc(max(12px, env(safe-area-inset-bottom)) + 44px); display: flex; min-width: 0; }
   .cs-controls { display: none; right: 10px; bottom: calc(max(12px, env(safe-area-inset-bottom)) + 86px); padding: 12px; border: 1px solid var(--ph-line); border-radius: 6px; background: var(--ph-glass); }
   .cs-controls-open { display: flex; }
+  .cs-stats-off .cs-controls > .cs-collapse { display: none; }
   .cs-stairs { left: 10px; bottom: calc(max(12px, env(safe-area-inset-bottom)) + 86px); max-height: 40vh; overflow-y: auto; }
   .cs-transport { left: 10px; }
   .cs-timeline { left: 10px; right: 10px; bottom: calc(max(12px, env(safe-area-inset-bottom)) + 44px); right: 96px; }
