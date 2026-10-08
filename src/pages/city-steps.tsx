@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { CityScene, COLOURS, Entry, STAIR_HUES, View, fmt } from "../components/city-steps/scene";
+import { CityScene, COLORS, Entry, STAIR_HUES, View, fmt } from "../components/city-steps/scene";
 
-// Walks around a hillside neighbourhood, scanned with a SICK LMS200 lidar and an
+// Walks around a hillside neighborhood, scanned with a SICK LMS200 lidar and an
 // Insta360 X3, replayed in 3D. The page opens on a plate of every flight of steps;
 // each opens on its own, and the whole walks sit behind "Walks". The chrome is the
 // portfolio's (ph-*) in a dark palette.
@@ -29,7 +29,7 @@ const LEGENDS: Record<number, string> = {
 const HINTS: Record<View, string> = {
   orbit: "Drag to orbit · right-drag to pan · scroll to zoom",
   chase: "The camera follows the walk",
-  eye: "Drag to look around · double-click to recentre",
+  eye: "Drag to look around · double-click to recenter",
   map: "Drag to pan · scroll to zoom",
   video: "The 360 video around the camera, with the lidar in place · drag to look around",
 };
@@ -48,7 +48,7 @@ function CitySteps() {
   const [loading, setLoading] = useState<{ text: string; fraction: number; error?: boolean } | null>({ text: "Loading walks", fraction: 0 });
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
-  const [colour, setColour] = useState(0);
+  const [color, setColor] = useState(0);
   const [view, setView] = useState<View>("orbit");
   const [live, setLive] = useState(false);
   const [dense, setDense] = useState(false);
@@ -84,7 +84,7 @@ function CitySteps() {
         setLoading(fraction >= 1 ? null : { text: label.current, fraction });
       },
       playing: setPlaying,
-      colour: setColour,
+      color: setColor,
       turned: setTurned,
       note: setNote,
     });
@@ -136,7 +136,7 @@ function CitySteps() {
 
   const s = sceneRef.current;
   const changeView = useCallback((v: View) => { sceneRef.current?.setView(v); setView(v); }, []);
-  const changeColour = useCallback((c: number) => sceneRef.current?.setColour(c), []);
+  const changeColor = useCallback((c: number) => sceneRef.current?.setColor(c), []);
   const changeDense = useCallback((on: boolean) => {
     setDense(on);
     sceneRef.current?.setDense(on).catch((err: Error) => setLoading({ text: `${err.message}. Reload to try again.`, fraction: 0, error: true }));
@@ -157,7 +157,7 @@ function CitySteps() {
       if (e.key === " ") togglePlay();
       else if (e.key === "ArrowRight") scene.setTime(scene.t + 5);
       else if (e.key === "ArrowLeft") scene.setTime(scene.t - 5);
-      else if (e.key === "c" || e.key === "C") changeColour((scene.colour + 1) % (scene.cur?.kind === "walk" ? 6 : 5));
+      else if (e.key === "c" || e.key === "C") changeColor((scene.color + 1) % (scene.cur?.kind === "walk" ? 6 : 5));
       else if (e.key === "v" || e.key === "V") changeView(VIEWS[(VIEWS.findIndex((v) => v.id === scene.view) + 1) % VIEWS.length].id);
       else if (e.key === "d" || e.key === "D") changeDense(!scene.dense);
       else return;
@@ -165,7 +165,7 @@ function CitySteps() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [plate, openPlate, togglePlay, changeColour, changeView, changeDense]);
+  }, [plate, openPlate, togglePlay, changeColor, changeView, changeDense]);
 
   // Readouts the scene updates every frame.
   const readout = (key: "time" | "elevation" | "scans") => (el: HTMLElement | null) => {
@@ -191,7 +191,7 @@ function CitySteps() {
     2: [`${elev[0].toFixed(1)} m`, `${elev[1].toFixed(1)} m`],
     3: ["0 m", "25 m+"],
   };
-  // Five flights sit three over two, the short row centred.
+  // Five flights sit three over two, the short row centered.
   const lastRow = flights.length % 3;
 
   return (
@@ -379,19 +379,19 @@ function CitySteps() {
                 )}
               </div>
               <div className="cs-group">
-                <span className="cs-label">Colour</span>
-                {COLOURS.map((label, c) =>
+                <span className="cs-label">Color</span>
+                {COLORS.map((label, c) =>
                   c === 5 && cur.kind !== "walk" ? null : (
-                    <button key={label} className={`ph-pill${colour === c ? " ph-pill-active" : ""}`} onClick={() => changeColour(c)}>
+                    <button key={label} className={`ph-pill${color === c ? " ph-pill-active" : ""}`} onClick={() => changeColor(c)}>
                       {label}
                     </button>
                   )
                 )}
-                {LEGENDS[colour] && (
+                {LEGENDS[color] && (
                   <div className="cs-legend">
-                    <i style={{ background: LEGENDS[colour] }} />
-                    <span>{legendEnds[colour][0]}</span>
-                    <span>{legendEnds[colour][1]}</span>
+                    <i style={{ background: LEGENDS[color] }} />
+                    <span>{legendEnds[color][0]}</span>
+                    <span>{legendEnds[color][1]}</span>
                   </div>
                 )}
               </div>

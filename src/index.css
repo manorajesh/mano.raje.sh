@@ -656,9 +656,13 @@ a {
 
 .cs-readouts { position: absolute; z-index: 3; top: max(12px, env(safe-area-inset-top)); right: 12px; display: flex; gap: 6px; }
 .cs-readouts .ph-box { min-width: 0; }
+/* Guides, captions and loading float over the cloud, so they sit on the same glass as the boxes. */
+.cs-root .ph-hint, .cs-title, .cs-loading { padding: 9px 14px; border: 1px solid rgba(255, 255, 255, .05); border-radius: 5px; background: rgba(22, 22, 22, .38); -webkit-backdrop-filter: blur(20px) saturate(1.1); backdrop-filter: blur(20px) saturate(1.1); box-shadow: 0 12px 32px -26px rgba(0, 0, 0, .5); }
+.cs-root .ph-hint { color: #8f8f8f; }
+.cs-plate .ph-hint { bottom: max(24px, env(safe-area-inset-bottom)); padding: 0; color: #5e5e5e; font-size: 8.5px; letter-spacing: .07em; background: none; border: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
 .cs-hint { top: calc(max(12px, env(safe-area-inset-top)) + 58px); bottom: auto; transition: opacity .8s ease; }
 .cs-hint-hidden { opacity: 0; }
-.cs-title { bottom: calc(max(12px, env(safe-area-inset-bottom)) + 62px); pointer-events: auto; }
+.cs-title { bottom: calc(max(12px, env(safe-area-inset-bottom)) + 62px); padding: 11px 16px; pointer-events: auto; }
 .cs-link { padding: 0; border: 0; background: none; color: var(--ph-ink); font: inherit; letter-spacing: inherit; text-transform: inherit; text-decoration: underline; text-decoration-color: var(--ph-dim); text-underline-offset: 3px; cursor: pointer; }
 
 .cs-label { color: var(--ph-dim); font-size: 9px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; }
@@ -696,7 +700,7 @@ a {
 .cs-cell-name sup { margin-left: .5em; color: var(--ph-dim); font-size: 7.5px; }
 .cs-cell-meta { position: absolute; bottom: 12px; left: 12px; color: var(--ph-dim); font-size: 9.5px; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; pointer-events: none; }
 
-.cs-loading { position: absolute; z-index: 4; top: 50%; left: 50%; display: grid; gap: 10px; justify-items: center; text-align: center; text-transform: uppercase; transform: translate(-50%, -50%); pointer-events: none; }
+.cs-loading { position: absolute; z-index: 4; top: 50%; left: 50%; display: grid; gap: 10px; justify-items: center; min-width: 200px; padding: 14px 18px; text-align: center; text-transform: uppercase; transform: translate(-50%, -50%); pointer-events: none; }
 .cs-loading p { margin: 0; font-size: 10.5px; font-weight: 500; letter-spacing: .04em; }
 .cs-loading span { display: block; width: 160px; height: 1px; background: var(--ph-line); }
 .cs-loading i { display: block; height: 100%; background: var(--ph-ink); transition: width .15s ease; }

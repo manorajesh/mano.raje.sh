@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 // Point clouds from a SICK LMS200 laser scanner carried on walks with an
-// Insta360 X3 on top. The camera's video gave the path and the colour; its gyro
+// Insta360 X3 on top. The camera's video gave the path and the color; its gyro
 // gave the orientation between frames. Data lives in public/walks.
 //
 // One WebGL canvas covers the page. In the viewer it draws the selected walk;
@@ -34,7 +34,7 @@ export type Entry = {
   steps_est?: number; slope_deg?: number; center?: number[];
 };
 export type View = "orbit" | "chase" | "eye" | "map" | "video";
-export const COLOURS = ["Photo", "Time", "Elevation", "Range", "Sweeps", "Stairs"] as const;
+export const COLORS = ["Photo", "Time", "Elevation", "Range", "Sweeps", "Stairs"] as const;
 export const STAIR_HUES = ["#ffb359", "#73d9bf", "#9ea8ff", "#ff8fa3"];
 
 export type Readouts = {
@@ -47,7 +47,7 @@ export type Readouts = {
 export type SceneEvents = {
   loading: (text: string | null, fraction: number) => void;
   playing: (playing: boolean) => void;
-  colour: (mode: number) => void;
+  color: (mode: number) => void;
   turned: (turned: boolean) => void;
   note: (text: string) => void;
 };
@@ -190,7 +190,7 @@ export class CityScene {
   playing = false;
   speed = 1;
   view: View = "orbit";
-  colour = 0;
+  color = 0;
   live = false;
   dense = false;
   screen: "viewer" | "stairs" = "viewer";
@@ -250,7 +250,7 @@ export class CityScene {
     this.controls.dampingFactor = 0.08;
     this.controls.screenSpacePanning = true;
 
-    // The 360 video, as a panorama in the camera frame (centre = forward, top = up)
+    // The 360 video, as a panorama in the camera frame (center = forward, top = up)
     // drawn on a sphere around the camera and turned by the camera's orientation.
     this.video = document.createElement("video");
     this.video.muted = true;
@@ -422,7 +422,7 @@ export class CityScene {
     g2.setAttribute("position", new THREE.BufferAttribute(arr, 3));
     this.pathDone = new THREE.Line(g2, new THREE.LineBasicMaterial({ color: INK, transparent: true, opacity: 0.8 }));
     this.scene.add(this.pathAll, this.pathDone);
-    if (entry.kind !== "walk" && this.colour === 5) this.setColour(0);
+    if (entry.kind !== "walk" && this.color === 5) this.setColor(0);
     if (this.readouts.scrub) this.readouts.scrub.max = String(entry.duration);
     this.drawProfile();
   }
@@ -464,10 +464,10 @@ export class CityScene {
 
   // ---------- settings ----------
 
-  setColour(mode: number) {
-    this.colour = mode;
+  setColor(mode: number) {
+    this.color = mode;
     this.mat.uniforms.uMode.value = mode;
-    this.events.colour(mode);
+    this.events.color(mode);
   }
   setLive(on: boolean) {
     this.live = on;
@@ -579,7 +579,7 @@ export class CityScene {
     this.sphere.visible = v === "video";
     this.mat.uniforms.uFog.value = v === "video" ? 0.004 : 0.01;
     if (v === "video") {
-      if (this.colour === 0) this.setColour(3); // photo colours vanish against the photo
+      if (this.color === 0) this.setColor(3); // photo colors vanish against the photo
       this.syncVideo(true);
     } else {
       this.video.pause();
