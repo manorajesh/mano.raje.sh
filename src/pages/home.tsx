@@ -2,6 +2,20 @@ import React from "react";
 import BallPool from "../components/BallPool";
 import { TypeAnimation } from "react-type-animation";
 import { MousePositionProvider } from "../components/MousePosition";
+import { Link } from "react-router-dom";
+
+const pages = [
+  { path: "/leaf-typology", name: "leaf typology" },
+  { path: "/city-steps", name: "pgh city steps" },
+  { path: "/arabic", name: "ḥurūf" },
+  { path: "/hindi", name: "hindi" },
+  { path: "/numerals", name: "numerals" },
+  { path: "/mixie", name: "mixie" },
+  { path: "/wordle", name: "wordle to image" },
+  { path: "/peculiar-code", name: "peculiar code" },
+  { path: "/letterboxd", name: "letterboxd" },
+  { path: "/pinterest", name: "pinterest" },
+];
 
 function Home() {
   return (
@@ -35,11 +49,22 @@ function Home() {
               <p className="pt-3 text-lg">
                 You can find my <a href="https://github.com/manorajesh">code</a>{" "}
                 on GitHub and my art on{" "}
-                <a href="https://www.artstation.com/manorajesh">ArtStation</a>{" "}
-                (for now). I'll write down some thoughts <a href="/">here</a> in
+                <a href="https://www.artstation.com/manorajesh">ArtStation</a> and{" "}
+                <Link to="/portfolio">here</Link>. I'll write down some thoughts <a href="/">here</a> in
                 a bit.
               </p>
             </div>
+
+            <nav className="pt-10">
+              <h2 className="pb-2 font-serif text-xl">around here</h2>
+              <ul className="flex flex-wrap gap-x-5 gap-y-1 text-lg">
+                {pages.map(({ path, name }) => (
+                  <li key={path}>
+                    <Link to={path}>{name}</Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
           </div>
         </div>
       </div>
