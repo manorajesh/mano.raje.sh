@@ -4,7 +4,9 @@ import { TypeAnimation } from "react-type-animation";
 import { MousePositionProvider } from "../components/MousePosition";
 import { Link } from "react-router-dom";
 
-const pages = [
+// `static` pages are separate builds copied into public/, so they need a full page load.
+const pages: { path: string; name: string; static?: boolean }[] = [
+  { path: "/pittstop/", name: "pitt stop", static: true },
   { path: "/leaf-typology", name: "leaf typology" },
   { path: "/city-steps", name: "pgh city steps" },
   { path: "/arabic", name: "ḥurūf" },
@@ -58,9 +60,9 @@ function Home() {
             <nav className="pt-10">
               <h2 className="pb-2 font-serif text-xl">around here</h2>
               <ul className="flex flex-wrap gap-x-5 gap-y-1 text-lg">
-                {pages.map(({ path, name }) => (
+                {pages.map(({ path, name, static: isStatic }) => (
                   <li key={path}>
-                    <Link to={path}>{name}</Link>
+                    {isStatic ? <a href={path}>{name}</a> : <Link to={path}>{name}</Link>}
                   </li>
                 ))}
               </ul>
