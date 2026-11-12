@@ -1,11 +1,11 @@
 import React, { useEffect } from "react";
-import { Link } from "react-router-dom";
+// import { Link } from "react-router-dom";
 import "../components/hot-air/hot-air.css";
 import RayDiagram from "../components/hot-air/RayDiagram";
 import { Hero, useClips, Wipe } from "../components/hot-air/Clips";
 import Rig3D from "../components/hot-air/Rig3D";
 import Calib from "../components/hot-air/Calib";
-import Sync from "../components/hot-air/Sync";
+// import Sync from "../components/hot-air/Sync";
 import Training from "../components/hot-air/Training";
 import Field from "../components/hot-air/Field";
 
