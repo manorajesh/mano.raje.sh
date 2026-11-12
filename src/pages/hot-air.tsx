@@ -1,11 +1,11 @@
 import React, { useEffect } from "react";
-// import { Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import "../components/hot-air/hot-air.css";
 import RayDiagram from "../components/hot-air/RayDiagram";
 import { Hero, useClips, Wipe } from "../components/hot-air/Clips";
 import Rig3D from "../components/hot-air/Rig3D";
 import Calib from "../components/hot-air/Calib";
-// import Sync from "../components/hot-air/Sync";
+import Sync from "../components/hot-air/Sync";
 import Training from "../components/hot-air/Training";
 import Field from "../components/hot-air/Field";
 
@@ -26,7 +26,7 @@ function HotAir() {
   return (
     <div className="ha-root">
       <div className="ha-col">
-        {/* <Link className="ha-home" to="/">← mano</Link> */}
+        <Link className="ha-home" to="/">← mano</Link>
         <h1>
           hot <span>air</span>
         </h1>
@@ -72,13 +72,13 @@ function HotAir() {
         <figcaption>Where that puts the phones. Drag to look around.</figcaption>
       </figure>
 
-      {/* <div className="ha-col">
+      <div className="ha-col">
         <p>They started recording at different times. They all heard the same room, so lining up the sound lines up the video.</p>
       </div>
       <figure className="ha-fig ha-fig-narrow">
         <Sync />
         <figcaption>Drag the left and right tracks until they match the center.</figcaption>
-      </figure> */}
+      </figure>
 
       <div className="ha-col">
         <h2>Fitting</h2>
@@ -94,7 +94,7 @@ function HotAir() {
       </div>
       <figure className="ha-fig">
         <Field />
-        <figcaption>Drag to turn. Shadowgram shows what a phone at that angle would film.</figcaption>
+        <figcaption>Drag to turn. Structure shows where warm air meets cool air. Shadowgram shows what a phone at that angle would film.</figcaption>
       </figure>
       <div className="ha-col">
         <p className="ha-note">The phones only cover 31°, so a lot of the depth information had to be guessed by the field.</p>

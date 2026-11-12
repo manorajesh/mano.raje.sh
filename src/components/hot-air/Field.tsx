@@ -1,14 +1,21 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
-import { buildRig, getGzip, getJSON, Rig } from "./common";
+import { buildRig, getBytes, getJSON, gunzip, Rig } from "./common";
 import { makeStage } from "./Rig3D";
 
 // The fitted 4D field: a stack of 3D density frames, ray-marched in the browser.
-// "Shadowgram" renders what a phone at the current view would film: the projected density
-// (sum along each line of sight) into an offscreen target, then its Laplacian, which is what a
-// shadowgraph shows to first order.
+// Frames arrive as separate gzipped volumes (field/NNN.gz) and are decoded as they play.
+// "Density" is the field itself. "Structure" shows where density changes fastest, which is
+// where the wisps are. "Shadowgram" renders what a phone at the current view would film: the
+// projected density (sum along each line of sight) into an offscreen target, then its Laplacian,
+// which is what a shadowgraph shows to first order.
 
-type FieldMeta = { nx: number; ny: number; nz: number; frames: number; fps: number; min: number[]; max: number[]; vox_mm?: number };
+type FieldMeta = {
+  nx: number; ny: number; nz: number; frames: number; fps: number; min: number[]; max: number[];
+  gamma?: number; vox_mm?: number | null; bytes?: number[];
+};
+type Mode = "density" | "structure" | "shadowgram";
+const MODES: Mode[] = ["density", "structure", "shadowgram"];
 
 const VERT = `
   out vec3 vWorld;
@@ -24,14 +31,15 @@ const FRAG = `
   in vec3 vWorld;
   layout(location = 0) out vec4 outColor;
   uniform sampler3D uVol;
-  uniform vec3 uMin, uMax;
-  uniform float uGain;
+  uniform vec3 uMin, uMax, uTexel;
+  uniform float uGain, uStep, uInvGamma, uGrad;
   uniform int uMode;
-  const int STEPS = 192;
+  const int MAX_STEPS = 640;
   vec3 fire(float x) {
     x = clamp(x, 0.0, 1.0);
     return vec3(clamp(1.6 * x, 0.0, 1.0), clamp(1.6 * x - 0.45, 0.0, 1.0), clamp(2.2 * x - 1.3, 0.0, 1.0) * 0.9 + 0.1 * x);
   }
+  float lin(vec3 u) { return pow(texture(uVol, u).r, uInvGamma); }
   void main() {
     vec3 ro = cameraPosition;
     vec3 rd = normalize(vWorld - ro);
@@ -41,23 +49,35 @@ const FRAG = `
     float a = max(max(max(tn.x, tn.y), tn.z), 0.0);
     float b = min(min(tf.x, tf.y), tf.z);
     if (a >= b) discard;
-    float dt = (b - a) / float(STEPS);
+    int n = clamp(int(ceil((b - a) / uStep)), 1, MAX_STEPS);
+    float dt = (b - a) / float(n);
     float j = fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453);
     vec3 col = vec3(0.0);
     float T = 1.0, P = 0.0;
-    for (int i = 0; i < STEPS; i++) {
+    vec3 ex = vec3(uTexel.x, 0.0, 0.0), ey = vec3(0.0, uTexel.y, 0.0), ez = vec3(0.0, 0.0, uTexel.z);
+    for (int i = 0; i < MAX_STEPS; i++) {
+      if (i >= n) break;
       vec3 p = ro + rd * (a + (float(i) + j) * dt);
-      float d = texture(uVol, (p - uMin) / (uMax - uMin)).r;
-      P += d * dt;
-      if (uMode == 0 && d > 0.002) {
-        float al = 1.0 - exp(-d * uGain * dt);
-        col += T * al * fire(d * 1.2 + 0.05);
-        T *= 1.0 - al;
-        if (T < 0.01) break;
+      vec3 u = (p - uMin) / (uMax - uMin);
+      float v = texture(uVol, u).r;
+      if (uMode == 2) { P += pow(v, uInvGamma) * dt; continue; }
+      if (v < 0.01) continue;
+      float al, c;
+      if (uMode == 0) {
+        al = 1.0 - exp(-v * uGain * dt);
+        c = v * 1.2 + 0.05;
+      } else {
+        vec3 g = vec3(lin(u + ex) - lin(u - ex), lin(u + ey) - lin(u - ey), lin(u + ez) - lin(u - ez));
+        float s = clamp(length(g) * uGrad, 0.0, 1.0);
+        al = 1.0 - exp(-s * s * uGain * 1.6 * dt);
+        c = s * 1.1;
       }
+      col += T * al * fire(c);
+      T *= 1.0 - al;
+      if (T < 0.01) break;
     }
-    if (uMode == 0) outColor = vec4(col, 1.0 - T);
-    else outColor = vec4(P, 0.0, 0.0, 1.0);
+    if (uMode == 2) outColor = vec4(P, 0.0, 0.0, 1.0);
+    else outColor = vec4(col, 1.0 - T);
   }`;
 
 const SG_FRAG = `
@@ -78,15 +98,16 @@ const SG_FRAG = `
 export default function Field() {
   const wrap = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
-  const [load, setLoad] = useState<{ f: number; err?: string } | null>({ f: 0 });
+  const [load, setLoad] = useState<{ err?: string } | null>({});
+  const [buffered, setBuffered] = useState(0);
   const [meta, setMeta] = useState<FieldMeta | null>(null);
   const [frame, setFrame] = useState(0);
   const [playing, setPlaying] = useState(true);
-  const [mode, setMode] = useState<"density" | "shadowgram">("density");
+  const [mode, setMode] = useState<Mode>("structure");
   const [phones, setPhones] = useState(true);
-  const ui = useRef({ frame: 0, playing: true, mode: 0, phones: true, scrubbed: false });
+  const ui = useRef({ frame: 0, playing: true, mode: 1, phones: true, ready: 0 });
   ui.current.playing = playing;
-  ui.current.mode = mode === "density" ? 0 : 1;
+  ui.current.mode = MODES.indexOf(mode);
   ui.current.phones = phones;
 
   useEffect(() => {
@@ -95,19 +116,55 @@ export default function Field() {
     (async () => {
       try {
         const [m, rig] = await Promise.all([getJSON<FieldMeta>("field.json"), getJSON<Rig>("rig.json")]);
-        const vol = await getGzip("field.bin.gz", (f) => !dead && setLoad({ f }));
+        const packed: (Uint8Array | null)[] = new Array(m.frames).fill(null);
+        const total = (m.bytes ?? []).reduce((a, b) => a + b, 0);
+        let got = 0;
+        // Fetch in order, a few at a time; playback runs over the frames that have arrived so far.
+        let next = 0;
+        let started!: () => void;
+        const firstIn = new Promise<void>((res) => {
+          started = res;
+        });
+        const worker = async () => {
+          while (!dead && next < m.frames) {
+            const i = next++;
+            packed[i] = await getBytes(`field/${String(i).padStart(3, "0")}.gz`);
+            got += m.bytes?.[i] ?? 0;
+            let r = ui.current.ready;
+            while (r < m.frames && packed[r]) r++;
+            ui.current.ready = r;
+            if (i === 0) started();
+            if (!dead) setBuffered(total ? got / total : r / m.frames);
+          }
+        };
+        const fetching = Promise.all(Array.from({ length: 6 }, worker));
+        await Promise.race([firstIn, fetching]);
+        const first = await gunzip(packed[0]!);
         if (dead || !canvas.current || !wrap.current) return;
         setMeta(m);
         setLoad(null);
-        dispose = start(m, rig, vol);
+        dispose = start(m, rig, packed, first);
+        await fetching;
       } catch (e) {
-        if (!dead) setLoad({ f: 0, err: (e as Error).message });
+        if (!dead) setLoad({ err: (e as Error).message });
       }
     })();
 
-    function start(m: FieldMeta, rig: Rig, vol: Uint8Array) {
-      const N = m.nx * m.ny * m.nz;
-      const tex = new THREE.Data3DTexture(vol.subarray(0, N), m.nx, m.ny, m.nz);
+    function start(m: FieldMeta, rig: Rig, packed: (Uint8Array | null)[], first: Uint8Array) {
+      // Decoded frames: a small cache, filled just ahead of playback.
+      const decoded = new Map<number, Uint8Array>([[0, first]]);
+      const pending = new Set<number>();
+      const want = (i: number) => {
+        if (decoded.has(i) || pending.has(i) || !packed[i]) return;
+        pending.add(i);
+        gunzip(packed[i]!).then((d) => {
+          pending.delete(i);
+          decoded.set(i, d);
+          while (decoded.size > 8) decoded.delete(decoded.keys().next().value as number);
+        });
+      };
+
+      const tex = new THREE.Data3DTexture(first, m.nx, m.ny, m.nz);
       tex.format = THREE.RedFormat;
       tex.type = THREE.UnsignedByteType;
       tex.minFilter = tex.magFilter = THREE.LinearFilter;
@@ -115,11 +172,16 @@ export default function Field() {
       tex.needsUpdate = true;
       const lo = new THREE.Vector3(...m.min), hi = new THREE.Vector3(...m.max);
       const size = hi.clone().sub(lo), mid = hi.clone().add(lo).multiplyScalar(0.5);
+      const vox = size.y / (m.ny - 1);
       const mat = new THREE.ShaderMaterial({
         glslVersion: THREE.GLSL3,
         vertexShader: VERT,
         fragmentShader: FRAG,
-        uniforms: { uVol: { value: tex }, uMin: { value: lo }, uMax: { value: hi }, uGain: { value: 55 }, uMode: { value: 0 } },
+        uniforms: {
+          uVol: { value: tex }, uMin: { value: lo }, uMax: { value: hi }, uGain: { value: 55 }, uMode: { value: 0 },
+          uStep: { value: 0.75 * vox }, uInvGamma: { value: 1 / (m.gamma ?? 1) }, uGrad: { value: 2 },
+          uTexel: { value: new THREE.Vector3(1 / m.nx, 1 / m.ny, 1 / m.nz) },
+        },
         side: THREE.BackSide,
         transparent: true,
         premultipliedAlpha: true,
@@ -149,27 +211,34 @@ export default function Field() {
       volBox.position.copy(mid);
       volScene.add(volBox);
 
-      const vox = (size.y / m.ny) || 0.004;
-      let shown = -1;
+      let shown = 0;
       let clock = 0, last = performance.now();
       const st = makeStage(canvas.current!, wrap.current!, (w, h) => {
         const now = performance.now();
         const u = ui.current;
+        const ready = Math.max(1, u.ready);
         if (u.playing) {
           clock += (now - last) / 1000;
-          u.frame = Math.floor(clock * m.fps) % m.frames;
-        } else clock = u.frame / m.fps;
+          u.frame = Math.floor(clock * m.fps) % ready;
+        } else {
+          u.frame = Math.min(u.frame, ready - 1);
+          clock = u.frame / m.fps;
+        }
         last = now;
-        if (u.frame !== shown) {
+        want(u.frame);
+        want((u.frame + 1) % ready);
+        want((u.frame + 2) % ready);
+        const d = decoded.get(u.frame);
+        if (u.frame !== shown && d) {
           shown = u.frame;
-          tex.image.data = vol.subarray(shown * N, (shown + 1) * N);
+          tex.image.data = d;
           tex.needsUpdate = true;
           setFrame(shown);
         }
-        rigGroup.visible = u.phones && u.mode === 0;
+        rigGroup.visible = u.phones && u.mode !== 2;
         mat.uniforms.uMode.value = u.mode;
         const r = st.renderer;
-        if (u.mode === 0) {
+        if (u.mode !== 2) {
           r.setRenderTarget(null);
           r.render(scene, st.camera);
           return;
@@ -198,7 +267,7 @@ export default function Field() {
       const aim = mid.clone().setY(lo.y + 0.38 * size.y); // the plume is densest in the lower part of the box
       st.controls.target.copy(aim);
       st.camera.position.copy(aim).addScaledVector(dir, 0.8);
-      st.controls.minDistance = 0.25;
+      st.controls.minDistance = 0.15;
       st.controls.maxDistance = 6;
       return () => {
         st.dispose();
@@ -223,19 +292,20 @@ export default function Field() {
         <canvas ref={canvas} />
         {load && (
           <div className="ha-loading">
-            {load.err ? load.err : "Loading the field"}
+            {load.err ?? "Loading the field"}
             {!load.err && (
               <span>
-                <i style={{ width: `${Math.round(load.f * 100)}%` }} />
+                <i style={{ width: `${Math.round(buffered * 100)}%` }} />
               </span>
             )}
           </div>
         )}
       </div>
       <div className="ha-controls">
-        <button className={`ha-pill${mode === "density" ? " ha-pill-active" : ""}`} onClick={() => setMode("density")}>Density</button>
-        <button className={`ha-pill${mode === "shadowgram" ? " ha-pill-active" : ""}`} onClick={() => setMode("shadowgram")}>Shadowgram</button>
-        <button className={`ha-pill${phones ? " ha-pill-active" : ""}`} disabled={mode !== "density"} onClick={() => setPhones((p) => !p)}>Phones</button>
+        {MODES.map((k) => (
+          <button key={k} className={`ha-pill${mode === k ? " ha-pill-active" : ""}`} onClick={() => setMode(k)}>{k}</button>
+        ))}
+        <button className={`ha-pill${phones ? " ha-pill-active" : ""}`} disabled={mode === "shadowgram"} onClick={() => setPhones((p) => !p)}>Phones</button>
       </div>
       <div className="ha-controls">
         <button className="ha-pill ha-play" aria-label={playing ? "Pause" : "Play"} onClick={() => setPlaying((p) => !p)}>
@@ -248,7 +318,9 @@ export default function Field() {
             setPlaying(false);
             ui.current.frame = +e.target.value;
           }} />
-        <span className="ha-readout"><b>{meta ? (frame / meta.fps).toFixed(2) : "0.00"}</b> / {T.toFixed(1)} s</span>
+        <span className="ha-readout">
+          {buffered < 1 ? <>loading {Math.round(buffered * 100)}%</> : <><b>{meta ? (frame / meta.fps).toFixed(2) : "0.00"}</b> / {T.toFixed(1)} s</>}
+        </span>
       </div>
     </>
   );

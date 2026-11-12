@@ -31,11 +31,20 @@ export async function getGzip(file: string, progress: (f: number) => void): Prom
       },
     })
   );
-  // Some servers already undo the gzip (Content-Encoding); only decompress if the bytes are still gzip.
-  const raw = new Uint8Array(await new Response(counted).arrayBuffer());
+  return gunzip(new Uint8Array(await new Response(counted).arrayBuffer()));
+}
+
+// Some servers already undo the gzip (Content-Encoding); only decompress if the bytes are still gzip.
+export async function gunzip(raw: Uint8Array): Promise<Uint8Array> {
   if (raw[0] !== 0x1f || raw[1] !== 0x8b) return raw;
   const out = new Response(new Blob([raw]).stream().pipeThrough(new DecompressionStream("gzip")));
   return new Uint8Array(await out.arrayBuffer());
+}
+
+export async function getBytes(file: string): Promise<Uint8Array> {
+  const r = await fetch(BASE + file);
+  if (!r.ok) throw new Error(`Couldn't load ${file}`);
+  return new Uint8Array(await r.arrayBuffer());
 }
 
 export function useWidth(ref: RefObject<HTMLElement>) {
