@@ -9,6 +9,7 @@ const pages: { path: string; name: string; static?: boolean }[] = [
   { path: "/pittstop/", name: "pitt stop", static: true },
   { path: "/leaf-typology", name: "leaf typology" },
   { path: "/city-steps", name: "pgh city steps" },
+  { path: "/hot-air", name: "hot air" },
   { path: "/arabic", name: "ḥurūf" },
   { path: "/hindi", name: "hindi" },
   { path: "/numerals", name: "numerals" },

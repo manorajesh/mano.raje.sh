@@ -21,6 +21,7 @@ import Arabic from "./pages/arabic";
 // Loaded on demand so three.js stays out of every other page's bundle.
 const LeafTypology = lazy(() => import("./pages/leaf-typology"));
 const CitySteps = lazy(() => import("./pages/city-steps"));
+const HotAir = lazy(() => import("./pages/hot-air"));
 
 const router = createBrowserRouter([
   {
@@ -88,6 +89,14 @@ const router = createBrowserRouter([
     element: (
       <Suspense fallback={null}>
         <CitySteps />
+      </Suspense>
+    ),
+  },
+  {
+    path: "/hot-air",
+    element: (
+      <Suspense fallback={null}>
+        <HotAir />
       </Suspense>
     ),
   },
