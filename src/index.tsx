@@ -22,6 +22,7 @@ import Arabic from "./pages/arabic";
 const LeafTypology = lazy(() => import("./pages/leaf-typology"));
 const CitySteps = lazy(() => import("./pages/city-steps"));
 const HotAir = lazy(() => import("./pages/hot-air"));
+const Kettle = lazy(() => import("./pages/kettle"));
 
 const router = createBrowserRouter([
   {
@@ -97,6 +98,14 @@ const router = createBrowserRouter([
     element: (
       <Suspense fallback={null}>
         <HotAir />
+      </Suspense>
+    ),
+  },
+  {
+    path: "/kettle",
+    element: (
+      <Suspense fallback={null}>
+        <Kettle />
       </Suspense>
     ),
   },
