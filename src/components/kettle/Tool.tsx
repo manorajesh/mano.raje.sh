@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Analysis, CHECKS, CheckKey, D2R, DEFAULTS, DEFAULT_SCENARIO, DimKey, DIMS, enabled, IN3_PER_FLOZ, ML_PER_IN3,
-  Scenario, SKETCH, SPEC, TOL,
+  RATED_FILL, Scenario, SKETCH, SPEC, TOL,
 } from "./model";
 import { Designer, Diagnosis } from "./solver";
 import { DimState, KettleScene, PourStats, View } from "./scene";
@@ -25,6 +25,8 @@ const snap = (k: DimKey, v: number, u: Units) => {
 /** What failed, in words, with the amount. */
 function failText(k: CheckKey, a: Analysis, u: Units) {
   switch (k) {
+    case "neck": return "The upright neck needs a higher crest above its downturned outlet";
+    case "drain": return "The neck must slope downhill from the flush inlet to the lip at the selected stop";
     case "delivery":
       return `Model delivers ${fmtVol(a.poured, u)} at this fill and tilt`;
     case "stream":
@@ -34,11 +36,11 @@ function failText(k: CheckKey, a: Analysis, u: Units) {
         ? `Stream overshoots the far rim by ${fmtLen(Math.max(a.over, 0), u)}`
         : `Stream falls short of the near rim by ${fmtLen(Math.max(a.under, 0), u)}`;
     case "room":
-      return `Kettle needs ${fmtVol(a.fillVol - 0.97 * a.g.vol, u)} more room: the spout's crest leaves too much water behind`;
+      return `Kettle needs ${fmtVol(RATED_FILL - 0.97 * a.g.vol, u)} more room for its rated fill`;
     case "fit":
       if (a.rOut + 0.25 > -a.cx) return "Cup overlaps the base";
       if (a.reachGap < 0) return "Spout tip is behind the kettle's front edge";
-      return "Spout is too short for its reach (kettle under 3″ tall)";
+      return "Spout is too short for its reach (outlet under 1″ high)";
     case "clear":
       return a.gap < 0 ? `Spout or kettle hits the cup or table by ${fmtLen(-a.gap, u)}` : `Spout passes only ${fmtLen(a.gap, u)} over the rim`;
     case "drip":
@@ -46,7 +48,7 @@ function failText(k: CheckKey, a: Analysis, u: Units) {
         ? `Tip points ${a.exitDeg.toFixed(0)}° up when stopped, so the last flow runs back under the spout`
         : `Tip points only ${(-a.exitDeg).toFixed(0)}° down when stopped; the last flow can creep under the lip`;
     case "holds":
-      return `Pour overfills the cup by ${fmtVol(Math.max(a.poured, a.fillVol-a.retained) - a.cap, u)}`;
+      return `Pour overfills the cup by ${fmtVol(a.fillVol - a.cap, u)}`;
     case "rest":
       return a.restGap < 0 ? `Leaks standing level: water is ${fmtLen(-a.restGap, u)} over the spout's crest` : `Water stands only ${fmtLen(a.restGap, u)} under the spout's crest`;
     case "lid":
@@ -112,7 +114,7 @@ export default function KettleTool() {
   const [diag, setDiag] = useState<Diagnosis | null>(null);
   const [units, setUnits] = useState<Units>("in");
   const [view, setView] = useState<View>("side");
-  const [preview, setPreview] = useState(1);
+  const [preview, setPreview] = useState(0);
   const [speed, setSpeed] = useState(4);
   const [stats, setStats] = useState<PourStats | null>(null);
   const [hover, setHover] = useState<DimKey | null>(null);
@@ -130,6 +132,10 @@ export default function KettleTool() {
     scene?.stopPour();
     scene?.resetWater();
     scene?.update(D.dims, D.a, D.sc);
+    if (action === "reset") {
+      setPreview(0);
+      scene?.setPreview(0);
+    }
     moved.current = {};
     rerender();
   }, [D, rerender]);
@@ -470,7 +476,7 @@ export default function KettleTool() {
             <button title="Restore the starting design, locks and pour settings (Shift+R)" onClick={() => navigate("reset")}>Reset</button>
             <button
               onClick={() => {
-                D.setAll(DEFAULTS);
+                D.setAll({ ...DEFAULTS, ...SKETCH });
                 sceneRef.current?.resetWater();
                 rerender();
               }}
@@ -535,12 +541,12 @@ export default function KettleTool() {
         </div>
         <div className="kt-rows">
           <div className="kt-row kt-row-plain">
-            <span className="kt-label" title="How much leaves the kettle each time it tips to the tipping angle">Pour size</span>
+            <span className="kt-label" title="Starting water volume in the 32 US fl oz kettle">Starting fill</span>
             <input
               className="ha-range kt-range"
               type="range"
               min={2}
-              max={24}
+              max={32}
               step={0.5}
               value={sc.pour / IN3_PER_FLOZ}
               onChange={(e) => updateSc({ ...sc, pour: +e.target.value * IN3_PER_FLOZ })}
@@ -607,9 +613,13 @@ export default function KettleTool() {
               <dd>{fmtVol(a.poured, units)}</dd>
               <dt>Kettle height</dt>
               <dd>{fmtLen(a.g.Hk, units)}</dd>
-              <dt>Kettle holds</dt>
+              <dt>Rated capacity</dt>
+              <dd>{fmtVol(RATED_FILL, units)}</dd>
+              <dt>Body volume to brim</dt>
               <dd>{fmtVol(a.g.vol, units)}</dd>
-              <dt>Fill it with</dt>
+              <dt>Trapped at the stop</dt>
+              <dd>{a.checks.drain > TOL ? "Drain check failed" : `${(a.retained * ML_PER_IN3).toFixed(3)} mL`}</dd>
+              <dt>Starting fill</dt>
               <dd>
                 {fmtVol(a.fillVol, units)} <span>({Math.round((a.fillVol / a.g.vol) * 100)}%)</span>
               </dd>

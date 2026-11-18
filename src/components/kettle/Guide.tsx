@@ -54,7 +54,7 @@ const STEPS: Step[] = [
   {
     title: "The numbers",
     body:
-      "Pour size is how much leaves the kettle each time it tips. The readouts give how much to fill it with, how fast it pours and how long it takes. The checks list what has to hold; turn off the ones that don't apply. Switch to 3D to look around.",
+      "Starting fill is the amount in the kettle, up to its 32 US fl oz rating. The readouts give how much to fill it with, how fast it pours and how long it takes. The checks list what has to hold; turn off the ones that don't apply. Switch to 3D to look around.",
   },
 ];
 

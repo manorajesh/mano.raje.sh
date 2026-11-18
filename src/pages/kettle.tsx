@@ -25,7 +25,7 @@ function Kettle() {
           kettle <span>pour</span>
         </h1>
         <p className="ha-sub">
-          Drag a dimension to hold it fixed while the designer adjusts the others. The sketch is a starting point.
+          Drag a dimension to hold it fixed while the designer adjusts the others. The kettle is rated for 32 US fl oz and tips up to 50°.
           A passing result is a prediction for the selected fill, pivot and tipping speed.
         </p>
       </div>
@@ -43,13 +43,16 @@ function Kettle() {
           As the kettle tips, the jet inherits the moving outlet’s velocity. The validator samples the stream
           during tipping and as the stationary kettle drains. It checks the footprint at the rim, including a
           0.15″ splash allowance and possible drops from the lip. Playback uses the same discharge history.
-          It leaves the final 0.5% of the requested pour in the kettle because the last trickle is uncertain.
+          The inlet sits flush with the floor. At the selected stop the neck must run downhill all the way
+          to the lip, with zero predicted trapped bulk water. Playback stops within 0.01 mL of that limit.
+          Body height allows 25% nominal headspace above the rated charge. The upright overflow check
+          always uses the full 32 US fl oz, including when you simulate a smaller fill.
         </p>
         <h2>Before fabrication</h2>
         <p>
           Test a prototype with the intended spout bore, lip shape and finish. Use the indicated fill,
           pivot and cup position. Measure the nearest and farthest landing points while tipping and after stopping,
-          then weigh what reaches the cup and what spills. Repeat at the slowest and fastest expected tipping speeds.
+          then weigh what reaches the cup, what spills and what remains after draining. Repeat at the slowest and fastest expected tipping speeds.
         </p>
         <p className="ha-note">
           Sloshing, siphoning in a primed spout, surface wetting, sideways misalignment and fabrication tolerances

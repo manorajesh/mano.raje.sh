@@ -32,10 +32,10 @@ export const DIMS: DimSpec[] = [
   { key: "baseH", label: "Base height", short: "Base", min: 0, max: 24, cost: 1, hint: "Floor to the top of the base, where the kettle pivots", effect: "Raises the pivot, the kettle and the tip. The stream falls further, so it lands a little further out." },
   { key: "cupH", label: "Cup height", short: "Cup", min: 2, max: 8, cost: 2, hint: "Floor to the cup's rim", effect: "Raises the rim. The stream has to clear it and is caught sooner, a little closer to the kettle." },
   { key: "cupDist", label: "Cup distance", short: "Cup to base", min: 1, max: 36, cost: 1, hint: "Cup's centre to the front of the base", effect: "Moves the cup. The tip has to swing further to be over it, so the kettle tips more." },
-  { key: "spoutL", label: "Spout length", short: "Spout", min: 4, max: 30, cost: 1.2, hint: "Pivot to spout tip in a straight line, the radius the tip swings on", effect: "The radius the tip swings on. Longer reaches a further cup at less tilt, and makes the kettle taller." },
-  { key: "reach", label: "Spout reach", short: "Reach", min: 0.5, max: 24, cost: 1.2, hint: "Spout tip to the kettle's top front edge, measured across", effect: "How far the tip stands ahead of the kettle. With the spout length it sets the kettle's height and where the tip starts." },
-  { key: "tilt", label: "Tipping angle", short: "Tipping", angle: true, min: 0, max: 110, cost: 0.5, hint: "How far the kettle tips forward from level, about the front edge of the base", effect: "How far the kettle tips before it stops. More tilt lowers the tip, moves it further out, and pours with less water in the kettle." },
-  { key: "bend", label: "Tip bend", short: "Bend", angle: true, min: 0, max: 160, cost: 0.7, hint: "How far the end of the spout turns down from the straight line", effect: "How far the end of the spout turns down. More bend aims the stream down instead of out." },
+  { key: "spoutL", label: "Spout length", short: "Spout", min: 4, max: 30, cost: 1.2, hint: "Pivot to spout tip in a straight line, the radius the tip swings on", effect: "The radius the tip swings on. Longer reaches a further cup at less tilt, and changes the outlet height." },
+  { key: "reach", label: "Spout reach", short: "Reach", min: 0.5, max: 24, cost: 1.2, hint: "Spout tip to the kettle's top front edge, measured across", effect: "How far the tip stands ahead of the kettle. With the spout length it sets the outlet height and where the tip starts." },
+  { key: "tilt", label: "Tipping angle", short: "Tipping", angle: true, min: 0, max: 50, cost: 0.5, hint: "How far the kettle tips forward from level, about the front edge of the base", effect: "How far the kettle tips before it stops. More tilt lowers the tip, moves it further out, and pours with less water in the kettle." },
+  { key: "bend", label: "Tip bend", short: "Bend", angle: true, min: 15, max: 75, cost: 0.7, hint: "Downward angle of the outlet from horizontal with the kettle upright", effect: "How far the end of the spout turns down. More bend aims the stream down instead of out." },
   { key: "cupD", label: "Cup mouth", short: "Mouth", min: 1.5, max: 6, cost: 2, unit: 0.5, hint: "Inside diameter at the rim", effect: "The opening the stream has to land in. Wider is more forgiving and holds more." },
   { key: "kettleW", label: "Kettle width", short: "Width", min: 3, max: 14, cost: 1.5, hint: "Kettle's diameter at the bottom; the base matches it", effect: "Width of the kettle and its base. Wider holds more and keeps the level steadier while it pours." },
   { key: "bore", label: "Spout bore", short: "Bore", min: 0.2, max: 1.25, cost: 1.5, unit: 0.1, hint: "Inside diameter of the spout", effect: "Inside diameter of the spout. Wider pours faster and throws the stream further." },
@@ -46,31 +46,34 @@ export const UNIT = (k: DimKey) => SPEC[k].unit ?? (SPEC[k].angle ? 10 : 1);
 // The five numbers on the sketch; the other starting values are estimates. All ten are validated together.
 export const SKETCH: Partial<Dims> = { baseH: 5, cupH: 4, cupDist: 10.5, spoutL: 18, reach: 8 };
 export const DEFAULTS: Dims = {
-  baseH: 5, cupH: 4, cupDist: 10.5, spoutL: 18, reach: 8,
-  tilt: 15.6, bend: 125.5, cupD: 3.3, kettleW: 9.5, bore: 0.35,
+  baseH: 12, cupH: 4, cupDist: 11, spoutL: 10, reach: 10.8,
+  tilt: 48, bend: 32, cupD: 5.9, kettleW: 6.2, bore: 0.5,
 };
 
-export type CheckKey = "delivery" | "fit" | "room" | "stream" | "clear" | "drip" | "holds" | "rest" | "lid";
+export type CheckKey = "neck" | "drain" | "delivery" | "fit" | "room" | "stream" | "clear" | "drip" | "holds" | "rest" | "lid";
 export const CHECKS: { key: CheckKey; label: string; core?: boolean; hint: string }[] = [
   { key: "stream", label: "Stream lands in the cup", core: true, hint: "The simulated jet and drip landing points, plus the jet's width and a splash margin, is inside the rim" },
-  { key: "delivery", label: "Delivers the requested volume", core: true, hint: "Predicted discharge is within 1% of the requested pour" },
-  { key: "room", label: "Kettle holds the water", core: true, hint: "Water left below the spout's crest at the pour angle, plus the pour, fits in the kettle" },
+  { key: "neck", label: "Upright gooseneck", core: true, hint: "The neck rises above the outlet and turns down at the lip" },
+  { key: "drain", label: "Gravity-drains at the stop", core: true, hint: "The flush inlet and entire neck must drain downhill at the selected stop, at or below 50°" },
+  { key: "delivery", label: "Delivers the requested volume", core: true, hint: "The selected fill drains to the numerical cutoff of 0.01 mL" },
+  { key: "room", label: "Holds 32 US fl oz upright", core: true, hint: "Rated fill fits below the lid with headspace" },
   { key: "fit", label: "Parts fit", core: true, hint: "The cup sits clear of the base and the tip is ahead of the kettle" },
   { key: "clear", label: "Spout clears the cup", hint: "The spout and kettle keep 0.3″ above the rim the whole way down" },
   { key: "drip", label: "Lip points down at the stop", hint: "Screens for at least 10° of downward tilt. Actual drip separation also depends on edge shape and surface finish." },
   { key: "holds", label: "Cup holds the pour", hint: "The pour fits below a fill line 0.3″ under the rim" },
-  { key: "rest", label: "Doesn't leak at rest", hint: "Standing level, the water stays 0.25″ below the spout's crest" },
+  { key: "rest", label: "No overflow at full upright fill", core: true, hint: "Standing level, the water stays 0.25″ below the spout's crest" },
   { key: "lid", label: "Lid stays dry", hint: "Tipped, the water stays below the lid opening" },
 ];
 
-// pour: in³ that leave the kettle each time it tips. The kettle stops at the pour angle and
-// drains to the spout's crest, so it's filled with what stays behind plus the pour.
+// pour is the starting charge in cubic inches, up to the rated working capacity.
 export type Scenario = { pour: number; tiltSpeed: number; centered: boolean; checks: Record<CheckKey, boolean> };
+export const IN3_PER_FLOZ = 1.8046875;
+export const RATED_FILL = 32 * IN3_PER_FLOZ;
 export const DEFAULT_SCENARIO: Scenario = {
-  pour: 8 * 1.80469,
+  pour: RATED_FILL,
   tiltSpeed: 20,
   centered: true,
-  checks: { delivery: true, fit: true, room: true, stream: true, clear: true, drip: true, holds: true, rest: true, lid: true },
+  checks: { neck: true, drain: true, delivery: true, fit: true, room: true, stream: true, clear: true, drip: true, holds: true, rest: true, lid: true },
 };
 
 export const G = 386.09; // in/s²
@@ -89,8 +92,8 @@ const DRIP_DEG = 10;
 
 export const NS = 25; // samples along the spout
 export const D2R = Math.PI / 180;
-export const IN3_PER_FLOZ = 1.80469;
 export const ML_PER_IN3 = 16.3871;
+const TRACE = 0.01 / ML_PER_IN3; // numerical endpoint, 0.01 mL
 
 export type Geo = {
   rb: number; rt: number; xt: number; hz: number; Hk: number; L: number;
@@ -111,23 +114,29 @@ export const wallX = (g: { xt: number; Hk: number }, y: number) => (g.xt * y) / 
 export function geometry(d: Dims): Geo {
   const rb = d.kettleW / 2, rt = rb * TOP, xt = rb - rt;
   const hz = Math.max(d.reach - xt, 0.05);
-  const Hk = Math.sqrt(Math.max(d.spoutL * d.spoutL - hz * hz, 0.25));
-  const L = Math.hypot(hz, Hk);
-  const phi0 = Math.atan2(Hk, hz);
+  const tipY = Math.sqrt(Math.max(d.spoutL * d.spoutL - hz * hz, 0.25));
+  const L = Math.hypot(hz, tipY);
+  const phi0 = Math.atan2(tipY, hz);
   const b = d.bend * D2R;
-  const e = phi0 - b;
-  // A gooseneck: starts inside the kettle just above its floor (so the tube is buried in the
-  // wall, not stuck on the outside), leaves the front wall low, rises along the line to the
-  // tip and turns down at the end.
-  const ro = d.bore / 2 + SPOUT_WALL;
-  const y0 = ro + KETTLE_WALL + 0.12;
-  const x0 = wallX({ xt, Hk }, y0) + ro + 0.35;
-  const gam = Math.min(b * 0.3, 20 * D2R);
-  const a0 = Math.min(phi0 + gam, 95 * D2R);
-  const p1x = x0 - 0.42 * L * Math.cos(a0), p1y = y0 + 0.42 * L * Math.sin(a0);
-  const c = (0.12 + 0.2 * Math.min(1, b / (Math.PI / 2))) * L;
-  const tipX = -hz, tipY = Hk;
-  const p2x = tipX + c * Math.cos(e), p2y = tipY - c * Math.sin(e);
+  const e = -b;
+  // Body height gives the rated charge 25% nominal headspace. Solve using
+  // the actual inner frustum, including sheet thickness and the raised floor.
+  let low = KETTLE_WALL, high = 80;
+  for (let i = 0; i < 28; i++) {
+    const height = (low + high) / 2;
+    const vol = volBelow({ rb, rt, Hk: height } as Geo, 0, 1, height);
+    if (vol < RATED_FILL / 0.75) low = height;
+    else high = height;
+  }
+  const Hk = (low + high) / 2;
+  // Flush drain through the front wall, with a horizontal inlet tangent.
+  // Monotone outward reach keeps the curve single-valued even at large bends.
+  const y0 = KETTLE_WALL + d.bore / 2;
+  const x0 = wallX({ xt, Hk }, KETTLE_WALL) + KETTLE_WALL;
+  const tipX = -hz, run = x0 - tipX;
+  const p1x = x0 - run / 3, p1y = y0;
+  const handle = Math.min(run / 3, 0.3 * L);
+  const p2x = tipX + handle * Math.cos(e), p2y = tipY - handle * Math.sin(e);
   // sample finely, keep the part outside the wall as the spout proper
   const FINE = 200;
   const fx: number[] = [], fy: number[] = [];
@@ -151,7 +160,12 @@ export function geometry(d: Dims): Geo {
     cum[k] = len;
   }
   len += lead;
-  const bendTot = gam + b;
+  let bendTot = 0, previous = 0;
+  for (let i = 1; i < fx.length; i++) {
+    const tangent = Math.atan2(fy[i] - fy[i - 1], fx[i - 1] - fx[i]);
+    bendTot += Math.abs(tangent - previous);
+    previous = tangent;
+  }
   const g0 = { rb, rt, xt, Hk };
   const K0 = 1 + KE + 0.25 * (bendTot / (Math.PI / 2));
   const geo: Geo = {
@@ -308,7 +322,7 @@ export function pourAt(g: Geo, d: Dims, th: number, V: number, st: PourState = n
   const tube = tubeProfile(g, sn, cs);
   st.crest = d.baseH + tube.crest;
   st.s = d.baseH + surfaceFor(g, sn, cs, V, tube);
-  st.flowing = st.s > st.crest + 1e-8;
+  st.flowing = V > TRACE + 1e-10 && st.s > st.crest + 1e-8;
   // Use the centroid of the submerged outlet area for the pressure head.
   // At full bore this is the outlet centre. A shallow sheet uses the lower lip.
   const radius = d.bore / 2;
@@ -322,7 +336,10 @@ export function pourAt(g: Geo, d: Dims, th: number, V: number, st: PourState = n
     st.v = exitSpeed(g, d.bore, st.head);
     const submerged = st.s - st.crest;
     const crestCut = submerged / Math.max(tube.crestHalfHeight, 1e-12) - 1;
-    const wettedArea = radius * radius * Math.min(segArea(1, crestCut), outletArea);
+    // The flush port can draw only through the submerged portion of its opening.
+    const inletLevel = st.s - d.baseH - g.ctrl[0] * sn - g.ctrl[1] * cs;
+    const inletArea = segArea(1, inletLevel / (radius * cs));
+    const wettedArea = radius * radius * Math.min(segArea(1, crestCut), outletArea, inletArea);
     st.Q = wettedArea * st.v;
   } else {
     st.v = 0;
@@ -382,10 +399,10 @@ export function analyze(d: Dims, sc: Scenario): Analysis {
   const rimY = d.cupH;
   const snS = Math.sin(thStop), csS = Math.cos(thStop);
   const tube = tubeProfile(g, snS, csS);
-  const retained = stored(g, snS, csS, tube.crest, tube);
-  const fillVol = retained + sc.pour;
-  const rest = pourAt(g, d, 0, fillVol);
-  const restGap = rest.crest - rest.s;
+  const fillVol = Math.min(RATED_FILL, sc.pour);
+  const retained = Math.min(fillVol, stored(g, snS, csS, tube.crest, tube));
+  const full = pourAt(g, d, 0, RATED_FILL);
+  const restGap = full.crest - full.s;
   const omega = sc.tiltSpeed * D2R;
   const intervals: PourInterval[] = [];
   let V = fillVol, time = 0, pourTime = 0, firstTime: number | null = null;
@@ -418,7 +435,7 @@ export function analyze(d: Dims, sc: Scenario): Analysis {
   function add(s: PourState, w: number, dt: number, amount: number) {
     const after = V - amount;
     if (amount > 0 && firstTime === null) firstTime = time;
-    const target = retained + 0.05 * sc.pour;
+    const target = 0.05 * fillVol;
     if (V > target && after <= target)
       pourTime = time + dt * (V - target) / amount - (firstTime ?? time);
     intervals.push({ start: time, end: time + dt, before: V, after, jet: launch(s, d.baseH, w) });
@@ -450,13 +467,16 @@ export function analyze(d: Dims, sc: Scenario): Analysis {
     const midV = V - Math.min(V, edge.Q * active / 2);
     const mid = pourAt(g, d, th + omega * (dt - active / 2), midV, st);
     observe(mid, omega);
-    add(mid, omega, active, Math.min(V, mid.Q * active));
+    const endAngle = th + omega * dt;
+    const sn = Math.sin(endAngle), cs = Math.cos(endAngle);
+    const endTube = tubeProfile(g, sn, cs);
+    const available = Math.max(0, V - stored(g, sn, cs, endTube.crest, endTube) - TRACE);
+    add(mid, omega, active, Math.min(available, mid.Q * active));
   }
   if (dt > 0) observe(pourAt(g, d, thStop, V, st), omega);
-  // Integrate dt=dV/Q at the stop. Leave the asymptotic last 0.5% in
-  // the kettle and include its limiting drip location in the envelope.
-  const tail = 0.005 * sc.pour;
-  for (let i = 0; i < 64 && V - retained > tail + 1e-9; i++) {
+  // Integrate to the trapped volume plus the numerical trace cutoff.
+  const tail = TRACE;
+  for (let i = 0; i < 120 && V - retained > tail + 1e-9; i++) {
     observe(pourAt(g, d, thStop, V, st), 0);
     const amount = Math.min(V - retained - tail, (V - retained) * 0.15);
     const mid = pourAt(g, d, thStop, V - amount / 2, st);
@@ -494,14 +514,25 @@ export function analyze(d: Dims, sc: Scenario): Analysis {
   const poured = fillVol - V;
   const reachGap = d.reach - g.xt - 0.5;
 
+  // The world-height derivative of the cubic is quadratic. Check its
+  // endpoints and interior maximum, so a pocket between samples fails too.
+  const heights = [0, 2, 4, 6].map(i => g.ctrl[i] * snS + g.ctrl[i + 1] * csS);
+  const slopes = heights.slice(1).map((h, i) => h - heights[i]);
+  let uphill = Math.max(slopes[0], slopes[2]);
+  const curvature = slopes[0] - 2 * slopes[1] + slopes[2];
+  const t = (slopes[0] - slopes[1]) / curvature;
+  if (t > 0 && t < 1) uphill = Math.max(uphill,
+    (1 - t) ** 2 * slopes[0] + 2 * t * (1 - t)*slopes[1] + t * t * slopes[2]);
   const checks: Record<CheckKey, number> = {
-    fit: Math.max(rOut + 0.25 - d.cupDist, -reachGap, 3 - Math.sqrt(Math.max(d.spoutL ** 2 - g.hz ** 2, 0))),
-    room: (fillVol - 0.97 * g.vol) / (Math.PI * g.rt * g.rt),
-    delivery: (Math.abs(poured - sc.pour) - 0.01 * sc.pour) / (Math.PI * rIn * rIn),
+    neck: Math.max((g.e / D2R + 10) / 10, g.tipY + d.bore / 2 - Math.max(...Array.from(g.sy))),
+    drain: Math.max(uphill, (d.tilt - 50) / 10, retained > 1e-9 ? Math.cbrt(retained) : -1),
+    fit: Math.max(rOut + 0.25 - d.cupDist, -reachGap, 1 - Math.sqrt(Math.max(d.spoutL ** 2 - g.hz ** 2, 0))),
+    room: (RATED_FILL - 0.97 * g.vol) / (Math.PI * g.rt * g.rt),
+    delivery: (Math.abs(poured - fillVol) - 1.01 * TRACE) / (Math.PI * rIn * rIn),
     stream: Math.max(over, under, missesPlane ? 1 : -Infinity),
     clear: CLEAR - gap,
     drip: (exitDeg + DRIP_DEG) / 10,
-    holds: (Math.max(poured, sc.pour) - cap) / (Math.PI * rIn * rIn),
+    holds: (fillVol - cap) / (Math.PI * rIn * rIn),
     rest: 0.25 - restGap,
     lid: 0.1 - lidGap,
   };

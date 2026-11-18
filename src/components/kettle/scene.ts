@@ -127,7 +127,7 @@ export class KettleScene {
   private ortho: THREE.OrthographicCamera;
   private controls: OrbitControls;
   private view: View = "side";
-  private preview = 1; // fraction of the tipping angle shown
+  private preview = 0; // fraction of the tipping angle shown
   private autoFit = true;
   private dragging: DimKey | null = null;
   private focus: DimKey | null = null;
@@ -711,7 +711,7 @@ export class KettleScene {
     }
     // spout length: pivot to tip, offset outward, in the kettle's frame
     {
-      const ux = -g.hz / g.L, uy = g.Hk / g.L;
+      const ux = -g.hz / g.L, uy = g.tipY / g.L;
       const nx = -uy, ny = ux;
       const o = 1.3;
       const p0 = this.kw(0, 0, th), p1 = this.kw(g.tipX, g.tipY, th);
@@ -724,7 +724,7 @@ export class KettleScene {
     }
     // reach: tip to the top front edge, above
     {
-      const p0 = this.kw(g.tipX, g.tipY, th), p1 = this.kw(g.xt, g.Hk, th), up = this.kw(0, 1.4, th), o = this.kw(0, 0, th);
+      const p0 = this.kw(g.tipX, g.tipY, th), p1 = this.kw(g.xt, g.tipY, th), up = this.kw(0, 1.4, th), o = this.kw(0, 0, th);
       s = [];
       const m = dimSegs(p0, p1, [up[0] - o[0], up[1] - o[1]], z, s);
       const left = this.kw(-1, 0, th);
@@ -757,7 +757,7 @@ export class KettleScene {
     // tip bend: from the straight line through the tip round to the nozzle
     {
       const R = 1.8;
-      const a0 = Math.PI - g.phi0, a1 = Math.PI - g.e;
+      const a0 = Math.PI, a1 = Math.PI - g.e;
       s = [];
       const tip = this.kw(g.tipX, g.tipY, th);
       const pt = (ang: number, r: number) => this.kw(g.tipX + Math.cos(ang) * r, g.tipY + Math.sin(ang) * r, th);

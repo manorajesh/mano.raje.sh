@@ -1,12 +1,34 @@
-import { analyze, DEFAULTS, DEFAULT_SCENARIO, DIMS, D2R, G, landing, launch, pourAt } from "./model";
+import { analyze, DEFAULTS, DEFAULT_SCENARIO, DIMS, SKETCH, ML_PER_IN3, RATED_FILL, D2R, G, landing, launch, pourAt } from "./model";
 import { Designer } from "./solver";
 
 const scenario = DEFAULT_SCENARIO;
 
-test("the unmodified sketch overshoots the far rim", () => {
-  const result = analyze(DEFAULTS, scenario);
-  expect(result.ok).toBe(false);
-  expect(result.over).toBeGreaterThan(0.8);
+test("the full 32 fl oz charge stays below the upright crest and gravity-drains by 50°", () => {
+  const a = analyze(DEFAULTS, scenario);
+  expect(a.fillVol).toBe(57.75);
+  expect(a.ok).toBe(true);
+  expect(DEFAULTS.tilt).toBeLessThanOrEqual(50);
+  expect(a.restGap).toBeGreaterThanOrEqual(0.25);
+  expect(a.thStart).toBeGreaterThan(0);
+  expect(a.retained).toBe(0);
+  expect(a.finalVol * ML_PER_IN3).toBeCloseTo(0.01, 6);
+  expect(a.g.e).toBeLessThan(0);
+});
+
+test("the sketch and a stop with a pocket fail the mandatory drainage check", () => {
+  const sketch = analyze({ ...DEFAULTS, ...SKETCH }, scenario);
+  expect(sketch.checks.drain).toBeGreaterThan(0);
+  expect(sketch.retained).toBeGreaterThan(0);
+  const shallow = analyze({ ...DEFAULTS, tilt: 25 }, scenario);
+  expect(shallow.checks.drain).toBeGreaterThan(0);
+  expect(shallow.ok).toBe(false);
+  const small = analyze(DEFAULTS, { ...scenario, pour: RATED_FILL / 4 });
+  const leaks = analyze({ ...DEFAULTS, kettleW: 5 }, { ...scenario, pour: RATED_FILL / 4,
+    checks: { ...scenario.checks, rest: false } });
+  expect(leaks.checks.rest).toBeGreaterThan(0);
+  expect(leaks.ok).toBe(false);
+  expect(small.restGap).toBe(analyze(DEFAULTS, scenario).restGap);
+  expect(small.finalVol * ML_PER_IN3).toBeCloseTo(0.01, 6);
 });
 
 test("a released drop inherits the outlet velocity about the pivot", () => {
@@ -40,9 +62,12 @@ test.each([5, 20, 90])("conserves water through tipping and draining at %i degre
     expect(hit.x).toBeLessThan(a.hi);
   }
   expect(a.intervals.some(s => s.end <= DEFAULTS.tilt / tiltSpeed && s.after < s.before)).toBe(true);
-  expect(a.intervals.some(s => s.start >= DEFAULTS.tilt / tiltSpeed && s.after < s.before)).toBe(true);
+  const stopTime = DEFAULTS.tilt / tiltSpeed;
+  const atStop = a.intervals.filter(s => s.start < stopTime - 1e-9).pop()!;
+  if (atStop.after > 0.01 / ML_PER_IN3 + 1e-8)
+    expect(a.intervals.some(s => s.start >= stopTime - 1e-9 && s.after < s.before)).toBe(true);
   expect(discharged + volume).toBeCloseTo(a.fillVol, 9);
-  expect(discharged).toBeCloseTo(0.995 * scenario.pour, 8);
+  expect(discharged).toBeCloseTo(scenario.pour - 0.01 / ML_PER_IN3, 8);
   expect(pourAt(a.g, DEFAULTS, DEFAULTS.tilt * D2R, a.retained).Q).toBe(0);
 });
 
@@ -55,7 +80,7 @@ test("all ten dimensions can be pinned while the solver adjusts the others", () 
   }
   settle();
   for (const spec of DIMS) {
-    const value = designer.dims[spec.key] + (spec.max - spec.min) * 0.01;
+    const value = Math.min(spec.max, designer.dims[spec.key] + (spec.max - spec.min) * 0.01);
     designer.set(spec.key, value);
     settle();
     expect(designer.dims[spec.key]).toBe(value);
