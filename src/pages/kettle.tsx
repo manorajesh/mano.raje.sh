@@ -25,7 +25,7 @@ function Kettle() {
           kettle <span>pour</span>
         </h1>
         <p className="ha-sub">
-          Drag a dimension to hold it fixed while the designer adjusts the others. The kettle is rated for 32 US fl oz and tips up to 50°.
+          Drag a dimension to hold it fixed while the designer adjusts the others. The kettle is rated for 32 US fl oz and tips up to 75°.
           A passing result is a prediction for the selected fill, pivot and tipping speed.
         </p>
       </div>

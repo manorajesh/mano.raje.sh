@@ -19,10 +19,14 @@
 // Every landing point in that sweep, widened by the jet and a splash margin, has to be inside
 // the rim.
 
+// A gooseneck's swan neck rises steeply, so it empties only when tipped nearly over.
+export const MAX_TILT = 75;
+
 export type DimKey = "baseH" | "cupH" | "cupDist" | "spoutL" | "reach" | "tilt" | "bend" | "cupD" | "kettleW" | "bore";
 export type Dims = Record<DimKey, number>;
 export type DimSpec = {
   key: DimKey; label: string; short: string; angle?: boolean; min: number; max: number; cost: number; unit?: number;
+  fixed?: true; // a standard part: derived from the kettle body by standard(), never set or solved for
   hint: string; // what it measures
   effect: string; // what changing it does
 };
@@ -30,31 +34,26 @@ export type DimSpec = {
 // cost: how reluctant the solver is to move a dimension, per `unit` (1″ or 10° unless given).
 export const DIMS: DimSpec[] = [
   { key: "baseH", label: "Base height", short: "Base", min: 0, max: 24, cost: 1, hint: "Floor to the top of the base, where the kettle pivots", effect: "Raises the pivot, the kettle and the tip. The stream falls further, so it lands a little further out." },
-  { key: "cupH", label: "Cup height", short: "Cup", min: 2, max: 8, cost: 2, hint: "Floor to the cup's rim", effect: "Raises the rim. The stream has to clear it and is caught sooner, a little closer to the kettle." },
-  { key: "cupDist", label: "Cup distance", short: "Cup to base", min: 1, max: 36, cost: 1, hint: "Cup's centre to the front of the base", effect: "Moves the cup. The tip has to swing further to be over it, so the kettle tips more." },
-  { key: "spoutL", label: "Spout length", short: "Spout", min: 4, max: 30, cost: 1.2, hint: "Pivot to spout tip in a straight line, the radius the tip swings on", effect: "The radius the tip swings on. Longer reaches a further cup at less tilt, and changes the outlet height." },
-  { key: "reach", label: "Spout reach", short: "Reach", min: 0.5, max: 24, cost: 1.2, hint: "Spout tip to the kettle's top front edge, measured across", effect: "How far the tip stands ahead of the kettle. With the spout length it sets the outlet height and where the tip starts." },
-  { key: "tilt", label: "Tipping angle", short: "Tipping", angle: true, min: 0, max: 50, cost: 0.5, hint: "How far the kettle tips forward from level, about the front edge of the base", effect: "How far the kettle tips before it stops. More tilt lowers the tip, moves it further out, and pours with less water in the kettle." },
-  { key: "bend", label: "Tip bend", short: "Bend", angle: true, min: 15, max: 75, cost: 0.7, hint: "Downward angle of the outlet from horizontal with the kettle upright", effect: "How far the end of the spout turns down. More bend aims the stream down instead of out." },
-  { key: "cupD", label: "Cup mouth", short: "Mouth", min: 1.5, max: 6, cost: 2, unit: 0.5, hint: "Inside diameter at the rim", effect: "The opening the stream has to land in. Wider is more forgiving and holds more." },
-  { key: "kettleW", label: "Kettle width", short: "Width", min: 3, max: 14, cost: 1.5, hint: "Kettle's diameter at the bottom; the base matches it", effect: "Width of the kettle and its base. Wider holds more and keeps the level steadier while it pours." },
-  { key: "bore", label: "Spout bore", short: "Bore", min: 0.2, max: 1.25, cost: 1.5, unit: 0.1, hint: "Inside diameter of the spout", effect: "Inside diameter of the spout. Wider pours faster and throws the stream further." },
+  { key: "cupH", label: "Mug height", short: "Mug", fixed: true, min: 2, max: 8, cost: 2, hint: "Floor to the rim of a standard 11 oz US mug", effect: "Fixed: a standard 11 oz US mug stands 3.75″ tall." },
+  { key: "cupDist", label: "Mug distance", short: "Mug to base", min: 1, max: 36, cost: 1, hint: "Mug's centre to the front of the base", effect: "Moves the mug. The tip has to swing further to be over it, so the kettle tips more." },
+  { key: "spoutL", label: "Spout length", short: "Spout", fixed: true, min: 4, max: 30, cost: 1.2, hint: "Pivot to spout tip in a straight line, the radius the tip swings on", effect: "Fixed by the standard gooseneck, in proportion to the kettle body." },
+  { key: "reach", label: "Spout reach", short: "Reach", fixed: true, min: 0.5, max: 24, cost: 1.2, hint: "Spout tip to the kettle's top front edge, measured across", effect: "Fixed by the standard gooseneck, in proportion to the kettle body." },
+  { key: "tilt", label: "Tipping angle", short: "Tipping", angle: true, min: 0, max: MAX_TILT, cost: 0.5, hint: "How far the kettle tips forward from level, about the front edge of the base", effect: "How far the kettle tips before it stops. More tilt lowers the tip, moves it further out, and pours with less water in the kettle." },
+  { key: "bend", label: "Tip bend", short: "Bend", fixed: true, angle: true, min: 15, max: 75, cost: 0.7, hint: "Downward angle of the outlet from horizontal with the kettle upright", effect: "Fixed by the standard gooseneck." },
+  { key: "cupD", label: "Mug mouth", short: "Mouth", fixed: true, min: 1.5, max: 6, cost: 2, unit: 0.5, hint: "Inside diameter at the rim of a standard 11 oz US mug", effect: "Fixed: a standard US mug is 3.25″ across outside, 2.85″ inside." },
+  { key: "kettleW", label: "Kettle width", short: "Width", min: 3, max: 14, cost: 1.5, hint: "Kettle's diameter at the bottom; the base matches it", effect: "Width of the kettle and its base. Wider holds more and keeps the level steadier while it pours. The gooseneck scales with the body it makes." },
+  { key: "bore", label: "Spout bore", short: "Bore", fixed: true, min: 0.2, max: 1.25, cost: 1.5, unit: 0.1, hint: "Inside diameter of the spout", effect: "Fixed by the standard gooseneck, in proportion to the kettle body (5 mm on a neck 4.4″ tall)." },
 ];
 export const SPEC = Object.fromEntries(DIMS.map((s) => [s.key, s])) as Record<DimKey, DimSpec>;
 export const UNIT = (k: DimKey) => SPEC[k].unit ?? (SPEC[k].angle ? 10 : 1);
-
-// The five numbers on the sketch; the other starting values are estimates. All ten are validated together.
-export const SKETCH: Partial<Dims> = { baseH: 5, cupH: 4, cupDist: 10.5, spoutL: 18, reach: 8 };
-export const DEFAULTS: Dims = {
-  baseH: 12, cupH: 4, cupDist: 11, spoutL: 10, reach: 10.8,
-  tilt: 48, bend: 32, cupD: 5.9, kettleW: 6.2, bore: 0.5,
-};
+/** The dimensions a person sets and the solver moves. The rest are standard parts. */
+export const EDITABLE = DIMS.filter((s) => !s.fixed);
 
 export type CheckKey = "neck" | "drain" | "delivery" | "fit" | "room" | "stream" | "clear" | "drip" | "holds" | "rest" | "lid";
 export const CHECKS: { key: CheckKey; label: string; core?: boolean; hint: string }[] = [
   { key: "stream", label: "Stream lands in the cup", core: true, hint: "The simulated jet and drip landing points, plus the jet's width and a splash margin, is inside the rim" },
-  { key: "neck", label: "Upright gooseneck", core: true, hint: "The neck rises above the outlet and turns down at the lip" },
-  { key: "drain", label: "Gravity-drains at the stop", core: true, hint: "The flush inlet and entire neck must drain downhill at the selected stop, at or below 50°" },
+  { key: "neck", label: "Upright gooseneck", core: true, hint: "The neck's crest stands above the outlet, and the lip turns down at least 10°" },
+  { key: "drain", label: "Gravity-drains at the stop", core: true, hint: "The flush inlet and entire neck must drain downhill at the selected stop, at or below 75°" },
   { key: "delivery", label: "Delivers the requested volume", core: true, hint: "The selected fill drains to the numerical cutoff of 0.01 mL" },
   { key: "room", label: "Holds 32 US fl oz upright", core: true, hint: "Rated fill fits below the lid with headspace" },
   { key: "fit", label: "Parts fit", core: true, hint: "The cup sits clear of the base and the tip is ahead of the kettle" },
@@ -70,7 +69,7 @@ export type Scenario = { pour: number; tiltSpeed: number; centered: boolean; che
 export const IN3_PER_FLOZ = 1.8046875;
 export const RATED_FILL = 32 * IN3_PER_FLOZ;
 export const DEFAULT_SCENARIO: Scenario = {
-  pour: RATED_FILL,
+  pour: 10 * IN3_PER_FLOZ, // a mug's worth
   tiltSpeed: 20,
   centered: true,
   checks: { neck: true, drain: true, delivery: true, fit: true, room: true, stream: true, clear: true, drip: true, holds: true, rest: true, lid: true },
@@ -81,7 +80,7 @@ export const NU = 5.3e-4; // in²/s, water near 85 °C (0.34 mm²/s)
 export const TOP = 0.55; // kettle top diameter / bottom diameter
 export const CUP_WALL = 0.2;
 export const CUP_FLOOR = 0.3;
-export const CUP_TAPER = 0.86; // bottom inside radius / rim inside radius
+export const CUP_TAPER = 0.96; // bottom inside radius / rim inside radius: a near-straight C-handle mug
 export const FILL_LINE = 0.3; // a full cup stops this far under the rim
 export const SPOUT_WALL = 0.07;
 const KE = 0.5; // entry loss where the spout leaves the kettle
@@ -102,13 +101,56 @@ export type Geo = {
   bore: number;
   lead: number; // length of the spout inside the kettle wall, before the first sample
   len: number; bendTot: number; vol: number; K0: number;
-  ctrl: number[]; // bezier control points (inlet inside the kettle, out to the tip), for drawing
+  ctrl: number[]; // chain of cubic beziers: inlet (inside the kettle), then 3 points per segment out to the tip
 };
 
 export const KETTLE_WALL = 0.06; // sheet thickness of the kettle, sides and floor
 
 /** Outer front wall of the kettle at height y (kettle frame). */
 export const wallX = (g: { xt: number; Hk: number }, y: number) => (g.xt * y) / g.Hk;
+
+/**
+ * Body height for a kettle width. It gives the rated charge 25% nominal headspace, solved
+ * using the actual inner frustum, including sheet thickness and the raised floor.
+ */
+export function bodyHeight(kettleW: number) {
+  const rb = kettleW / 2, rt = rb * TOP;
+  let low = KETTLE_WALL, high = 80;
+  for (let i = 0; i < 28; i++) {
+    const height = (low + high) / 2;
+    const vol = volBelow({ rb, rt, Hk: height } as Geo, 0, 1, height);
+    if (vol < RATED_FILL / 0.75) low = height;
+    else high = height;
+  }
+  return (low + high) / 2;
+}
+
+// A standard 11 oz US C-handle mug: 3.75″ tall, 3.25″ across outside.
+export const MUG_H = 3.75;
+export const MUG_D = 3.25 - 2 * CUP_WALL;
+// A standard S gooseneck: a flush inlet low on the front wall, a rising swan neck and a
+// downturned lip. Its shape is fixed; its size follows the body, as fractions of it.
+// Proportions traced from a Fellow Stagg-style neck.
+const NECK_RISE = 0.8; // tip height above the pivot / body height: the lip sits below the rim
+const NECK_RUN = 0.5; // tip ahead of the pivot / tip height. The neck scales as one piece, so it keeps its shape
+const NECK_BEND = 12; // lip, degrees below horizontal standing level
+// The swan neck, in units of the tip height: a rounded heel off the inlet, a straight leg
+// rising at NECK_LEG, and an arc over the top that ends at the lip, pointing NECK_BEND down.
+const NECK_LEG = 72; // the leg's rise, degrees. It drains once the kettle tips past this.
+const NECK_ARC = 0.1; // radius of the arc over the top
+const NECK_HEEL = 0.08; // radius of the heel
+const NECK_BORE = 0.045; // bore / tip height: 5 mm on a neck 4.4″ tall
+
+/** Fills in the standard parts, the gooseneck in proportion to the body, and the mug. */
+export function standard(d: Dims): Dims {
+  const xt = (d.kettleW / 2) * (1 - TOP);
+  const tipY = NECK_RISE * bodyHeight(d.kettleW), hz = NECK_RUN * tipY;
+  return {
+    ...d,
+    spoutL: Math.hypot(tipY, hz), reach: hz + xt, bend: NECK_BEND, bore: NECK_BORE * tipY,
+    cupH: MUG_H, cupD: MUG_D,
+  };
+}
 
 /** The kettle in its own frame: pivot at the origin, x toward the kettle, y up, standing level. */
 export function geometry(d: Dims): Geo {
@@ -119,32 +161,36 @@ export function geometry(d: Dims): Geo {
   const phi0 = Math.atan2(tipY, hz);
   const b = d.bend * D2R;
   const e = -b;
-  // Body height gives the rated charge 25% nominal headspace. Solve using
-  // the actual inner frustum, including sheet thickness and the raised floor.
-  let low = KETTLE_WALL, high = 80;
-  for (let i = 0; i < 28; i++) {
-    const height = (low + high) / 2;
-    const vol = volBelow({ rb, rt, Hk: height } as Geo, 0, 1, height);
-    if (vol < RATED_FILL / 0.75) low = height;
-    else high = height;
-  }
-  const Hk = (low + high) / 2;
-  // Flush drain through the front wall, with a horizontal inlet tangent.
-  // Monotone outward reach keeps the curve single-valued even at large bends.
+  const Hk = bodyHeight(d.kettleW);
+  // Flush drain through the front wall, level, then the swan neck as cubic beziers: a straight
+  // run to the heel, the heel's arc, the straight leg, and the arc over the top to the lip.
+  // Worked in u (ahead of the pivot) and y; x = -u. Outward reach is monotone throughout.
   const y0 = KETTLE_WALL + d.bore / 2;
   const x0 = wallX({ xt, Hk }, KETTLE_WALL) + KETTLE_WALL;
-  const tipX = -hz, run = x0 - tipX;
-  const p1x = x0 - run / 3, p1y = y0;
-  const handle = Math.min(run / 3, 0.3 * L);
-  const p2x = tipX + handle * Math.cos(e), p2y = tipY - handle * Math.sin(e);
+  const tipX = -hz;
+  const a = NECK_LEG * D2R, R = NECK_ARC * tipY, rh = NECK_HEEL * tipY;
+  const cu = hz - R * Math.sin(b), cy = tipY - R * Math.cos(b); // centre of the top arc
+  const su = cu - R * Math.sin(a), sy0 = cy + R * Math.cos(a); // where the leg meets it
+  const ey = y0 + rh * (1 - Math.cos(a)), eu = su - (sy0 - ey) / Math.tan(a); // heel meets the leg
+  const hu = Math.max(eu - rh * Math.sin(a), -x0 + 0.01); // heel starts
+  const ctrl = [x0, y0];
+  const line = (u1: number, y1: number) => {
+    const u0 = -ctrl[ctrl.length - 2], v0 = ctrl[ctrl.length - 1];
+    ctrl.push(-(u0 + (u1 - u0) / 3), v0 + (y1 - v0) / 3, -(u0 + 2 * (u1 - u0) / 3), v0 + 2 * (y1 - v0) / 3, -u1, y1);
+  };
+  // an arc from tangent angle t0 to t1 (radians from level, outward), ending at (u1, y1)
+  const arc = (t0: number, t1: number, radius: number, u1: number, y1: number) => {
+    const u0 = -ctrl[ctrl.length - 2], v0 = ctrl[ctrl.length - 1];
+    const k = (4 / 3) * Math.tan(Math.abs(t1 - t0) / 4) * radius;
+    ctrl.push(-(u0 + k * Math.cos(t0)), v0 + k * Math.sin(t0), -(u1 - k * Math.cos(t1)), y1 - k * Math.sin(t1), -u1, y1);
+  };
+  line(hu, y0);
+  arc(0, a, rh, eu, ey);
+  line(su, sy0);
+  arc(a, -b, R, hz, tipY);
   // sample finely, keep the part outside the wall as the spout proper
-  const FINE = 200;
-  const fx: number[] = [], fy: number[] = [];
-  for (let i = 0; i <= FINE; i++) {
-    const t = i / FINE, u = 1 - t;
-    fx.push(u * u * u * x0 + 3 * u * u * t * p1x + 3 * u * t * t * p2x + t * t * t * tipX);
-    fy.push(u * u * u * y0 + 3 * u * u * t * p1y + 3 * u * t * t * p2y + t * t * t * tipY);
-  }
+  const { x: fx, y: fy } = sampleChain(ctrl, 100);
+  const FINE = fx.length - 1;
   let i0 = 0;
   while (i0 < FINE - 1 && fx[i0] > wallX({ xt, Hk }, fy[i0])) i0++;
   let lead = 0;
@@ -170,10 +216,24 @@ export function geometry(d: Dims): Geo {
   const K0 = 1 + KE + 0.25 * (bendTot / (Math.PI / 2));
   const geo: Geo = {
     rb, rt, xt, hz, Hk, L, phi0, e, tipX, tipY, sx, sy, cum, lead, len, bendTot, bore: d.bore, vol: 0, K0,
-    ctrl: [x0, y0, p1x, p1y, p2x, p2y, tipX, tipY],
+    ctrl,
   };
   geo.vol = volBelow({ ...g0 } as Geo, 0, 1, 1e6);
   return geo;
+}
+
+/** Points along a chain of cubic beziers [x0, y0, (c1, c2, end) per segment], `per` steps each. */
+export function sampleChain(ctrl: number[], per: number) {
+  const x = [ctrl[0]], y = [ctrl[1]];
+  for (let s = 0; s + 7 < ctrl.length; s += 6) {
+    const [ax, ay, bx, by, cx, cy, ex, ey] = ctrl.slice(s, s + 8);
+    for (let i = 1; i <= per; i++) {
+      const t = i / per, u = 1 - t;
+      x.push(u * u * u * ax + 3 * u * u * t * bx + 3 * u * t * t * cx + t * t * t * ex);
+      y.push(u * u * u * ay + 3 * u * u * t * by + 3 * u * t * t * cy + t * t * t * ey);
+    }
+  }
+  return { x, y };
 }
 
 function segArea(r: number, u: number) {
@@ -392,7 +452,8 @@ export type Analysis = {
 
 const st = newState();
 
-export function analyze(d: Dims, sc: Scenario): Analysis {
+export function analyze(given: Dims, sc: Scenario): Analysis {
+  const d = standard(given);
   const g = geometry(d);
   const cx = -d.cupDist, rIn = d.cupD / 2, rOut = rIn + CUP_WALL;
   const thStop = d.tilt * D2R;
@@ -516,16 +577,20 @@ export function analyze(d: Dims, sc: Scenario): Analysis {
 
   // The world-height derivative of the cubic is quadratic. Check its
   // endpoints and interior maximum, so a pocket between samples fails too.
-  const heights = [0, 2, 4, 6].map(i => g.ctrl[i] * snS + g.ctrl[i + 1] * csS);
-  const slopes = heights.slice(1).map((h, i) => h - heights[i]);
-  let uphill = Math.max(slopes[0], slopes[2]);
-  const curvature = slopes[0] - 2 * slopes[1] + slopes[2];
-  const t = (slopes[0] - slopes[1]) / curvature;
-  if (t > 0 && t < 1) uphill = Math.max(uphill,
-    (1 - t) ** 2 * slopes[0] + 2 * t * (1 - t)*slopes[1] + t * t * slopes[2]);
+  let uphill = -Infinity;
+  for (let s = 0; s + 7 < g.ctrl.length; s += 6) {
+    const heights = [0, 2, 4, 6].map(i => g.ctrl[s + i] * snS + g.ctrl[s + i + 1] * csS);
+    const slopes = heights.slice(1).map((h, i) => h - heights[i]);
+    uphill = Math.max(uphill, slopes[0], slopes[2]);
+    const curvature = slopes[0] - 2 * slopes[1] + slopes[2];
+    const t = (slopes[0] - slopes[1]) / curvature;
+    if (t > 0 && t < 1) uphill = Math.max(uphill,
+      (1 - t) ** 2 * slopes[0] + 2 * t * (1 - t) * slopes[1] + t * t * slopes[2]);
+  }
   const checks: Record<CheckKey, number> = {
-    neck: Math.max((g.e / D2R + 10) / 10, g.tipY + d.bore / 2 - Math.max(...Array.from(g.sy))),
-    drain: Math.max(uphill, (d.tilt - 50) / 10, retained > 1e-9 ? Math.cbrt(retained) : -1),
+    // The lip turns down at least 10° and the neck's crest stands above the outlet.
+    neck: Math.max((g.e / D2R + 10) / 10, g.tipY + 1e-3 - Math.max(...Array.from(g.sy))),
+    drain: Math.max(uphill, (d.tilt - MAX_TILT) / 10, retained > 1e-9 ? Math.cbrt(retained) : -1),
     fit: Math.max(rOut + 0.25 - d.cupDist, -reachGap, 1 - Math.sqrt(Math.max(d.spoutL ** 2 - g.hz ** 2, 0))),
     room: (RATED_FILL - 0.97 * g.vol) / (Math.PI * g.rt * g.rt),
     delivery: (Math.abs(poured - fillVol) - 1.01 * TRACE) / (Math.PI * rIn * rIn),
@@ -547,6 +612,14 @@ export function analyze(d: Dims, sc: Scenario): Analysis {
 }
 
 export const TOL = 1e-7;
+
+// The sketch's base height and cup distance; the other starting values are estimates. The
+// gooseneck and mug are standard parts, so only the editable dimensions are listed.
+export const SKETCH: Partial<Dims> = { baseH: 5, cupDist: 10.5 };
+export const DEFAULTS: Dims = standard({
+  baseH: 12, cupH: 0, cupDist: 5.2, spoutL: 0, reach: 0,
+  tilt: 74.6, bend: 0, cupD: 0, kettleW: 5.7, bore: 0,
+});
 
 export function enabled(sc: Scenario, k: CheckKey) {
   return !!CHECKS.find((c) => c.key === k)?.core || sc.checks[k];

@@ -11,8 +11,8 @@ jest.mock("./scene", () => ({
 
 test("design shortcuts and buttons share history while text fields keep native undo", () => {
   render(<KettleTool />);
-  const field = screen.getByRole("textbox", { name: "Cup distance" });
-  const slider = screen.getByRole("slider", { name: "Cup distance" }) as HTMLInputElement;
+  const field = screen.getByRole("textbox", { name: "Mug distance" });
+  const slider = screen.getByRole("slider", { name: "Mug distance" }) as HTMLInputElement;
   const tilt = screen.getByRole("slider", { name: "Tilt shown" }) as HTMLInputElement;
   expect(tilt.value).toBe("0");
   fireEvent.change(tilt, { target: { value: "1" } });

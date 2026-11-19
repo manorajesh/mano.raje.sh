@@ -173,3 +173,7 @@
 
 /* the panel runs the full height of the drawing column */
 .kt-panel { align-self: stretch; }
+
+/* standard parts: shown, not set */
+.kt-row.kt-row-fixed { grid-template-columns: minmax(0, 1fr) auto; }
+.kt-tag-fixed { cursor: default; padding-right: 7px; border-style: dashed; }

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  Analysis, CHECKS, CheckKey, D2R, DEFAULTS, DEFAULT_SCENARIO, DimKey, DIMS, enabled, IN3_PER_FLOZ, ML_PER_IN3,
+  Analysis, CHECKS, CheckKey, D2R, DEFAULTS, DEFAULT_SCENARIO, DimKey, DIMS, EDITABLE, enabled, IN3_PER_FLOZ, ML_PER_IN3,
   RATED_FILL, Scenario, SKETCH, SPEC, TOL,
 } from "./model";
 import { Designer, Diagnosis } from "./solver";
@@ -268,7 +268,7 @@ export default function KettleTool() {
 
   // tags: drag along the dimension
   const onTagDown = (k: DimKey) => (e: React.PointerEvent) => {
-    if ((e.target as HTMLElement).closest("button")) return;
+    if (SPEC[k].fixed || (e.target as HTMLElement).closest("button")) return;
     const r = sceneRef.current?.rate(k);
     if (!r || Math.hypot(r.x, r.y) < 1e-3) return;
     e.preventDefault();
@@ -320,7 +320,7 @@ export default function KettleTool() {
             <span
               key={k}
               ref={(el) => sceneRef.current && (sceneRef.current.tags[k] = el)}
-              className={`kt-tag kt-tag-${dimState[k]}${D.pinned === k ? " kt-tag-pinned" : ""}${focus === k ? " kt-tag-focus" : focus ? " kt-tag-faded" : ""}${moved.current[k] && now - moved.current[k]! < 900 ? " kt-tag-moved" : ""}`}
+              className={`kt-tag kt-tag-${dimState[k]}${SPEC[k].fixed ? " kt-tag-fixed" : ""}${D.pinned === k ? " kt-tag-pinned" : ""}${focus === k ? " kt-tag-focus" : focus ? " kt-tag-faded" : ""}${moved.current[k] && now - moved.current[k]! < 900 ? " kt-tag-moved" : ""}`}
               onPointerDown={onTagDown(k)}
               onPointerMove={onTagMove}
               onPointerUp={onTagUp}
@@ -330,9 +330,11 @@ export default function KettleTool() {
             >
               <em>{SPEC[k].short}</em>
               {fmtDim(k, D.dims[k], units)}
-              <button className="kt-tag-lock" onClick={() => toggleLock(k)} aria-label={`${D.locks.has(k) ? "Unlock" : "Lock"} ${SPEC[k].label}`}>
-                <Lock on={D.locks.has(k)} />
-              </button>
+              {!SPEC[k].fixed && (
+                <button className="kt-tag-lock" onClick={() => toggleLock(k)} aria-label={`${D.locks.has(k) ? "Unlock" : "Lock"} ${SPEC[k].label}`}>
+                  <Lock on={D.locks.has(k)} />
+                </button>
+              )}
             </span>
           ))}
           <div className={`kt-badge${ok ? "" : " kt-badge-bad"}`}>
@@ -485,17 +487,17 @@ export default function KettleTool() {
             </button>
             <button
               onClick={() => {
-                const all = DIMS.every((s) => D.locks.has(s.key));
-                D.setLocks(DIMS.map(s => s.key), !all);
+                const all = EDITABLE.every((s) => D.locks.has(s.key));
+                D.setLocks(EDITABLE.map(s => s.key), !all);
                 rerender();
               }}
             >
-              {DIMS.every((s) => D.locks.has(s.key)) ? "Unlock all" : "Lock all"}
+              {EDITABLE.every((s) => D.locks.has(s.key)) ? "Unlock all" : "Lock all"}
             </button>
           </span>
         </div>
         <div className="kt-rows">
-          {DIMS.map((s) => {
+          {EDITABLE.map((s) => {
             const k = s.key;
             const locked = D.locks.has(k);
             const st = dimState[k];
@@ -531,7 +533,24 @@ export default function KettleTool() {
             );
           })}
         </div>
+        <div className="kt-head">
+          <span>Standard parts</span>
+        </div>
+        <div className="kt-rows">
+          {DIMS.filter((s) => s.fixed).map((s) => (
+            <div
+              key={s.key}
+              className={`kt-row kt-row-plain kt-row-fixed${focus === s.key ? " kt-row-focus" : ""}${moved.current[s.key] && now - moved.current[s.key]! < 900 ? " kt-row-moved" : ""}`}
+              onPointerEnter={() => setHover(s.key)}
+              onPointerLeave={() => setHover((h) => (h === s.key ? null : h))}
+            >
+              <span className="kt-label" title={`${s.hint}. ${s.effect}`}>{s.label}</span>
+              <span className="kt-val">{fmtDim(s.key, D.dims[s.key], units)}</span>
+            </div>
+          ))}
+        </div>
         <p className="kt-help">
+          The gooseneck is a standard Stagg-style swan neck that scales with the kettle body; the mug is a standard 11 oz US mug.
           Hover a dimension to see what it changes. Locked dimensions hold still; the rest move to keep the water in the cup. The one
           you set last holds still too, until you set another.
         </p>

@@ -11,7 +11,7 @@ const STEPS: Step[] = [
   {
     title: "The drawing",
     body:
-      "The drawing shows the current design to scale: the kettle on its base and the cup in front. The solid kettle is tipped to its stop; the dashed one is it standing. The lines show predicted trajectories. The bar on the rim shows the estimated landing range. Blue means the range fits inside the cup. Orange marks a failed stream check.",
+      "The drawing shows the current design to scale: the kettle on its base and the mug in front. The gooseneck and mug are standard parts: the neck scales with the kettle, the mug never changes. The solid kettle is tipped to its stop; the dashed one is it standing. The lines show predicted trajectories. The bar on the rim shows the estimated landing range. Blue means the range fits inside the cup. Orange marks a failed stream check.",
     view: "side",
     tilt: 1,
   },
@@ -19,7 +19,7 @@ const STEPS: Step[] = [
     title: "Dimensions",
     body:
       "Each label is a dimension. Drag it along its line to change it, or use the sliders and number boxes in the panel. Hover any of them to light up what it measures and the part it changes, with a line underneath saying what changing it does.",
-    focus: "spoutL",
+    focus: "kettleW",
   },
   {
     title: "The rest follow",
@@ -31,7 +31,7 @@ const STEPS: Step[] = [
     title: "Locks",
     body:
       "Click a lock, on a label or in the list, to hold a dimension still. Locked dimensions never move. The one you set last also holds still until you set another.",
-    focus: "cupH",
+    focus: "baseH",
   },
   {
     title: "Tipping angle",

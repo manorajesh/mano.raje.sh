@@ -469,9 +469,11 @@ export class KettleScene {
 
     // spout: the model's gooseneck as a tube, starting inside the kettle wall
     const c = g.ctrl;
-    const curve = new THREE.CubicBezierCurve3(
-      new THREE.Vector3(c[0], c[1], 0), new THREE.Vector3(c[2], c[3], 0), new THREE.Vector3(c[4], c[5], 0), new THREE.Vector3(c[6], c[7], 0)
-    );
+    const curve = new THREE.CurvePath<THREE.Vector3>();
+    for (let i = 0; i + 7 < c.length; i += 6)
+      curve.add(new THREE.CubicBezierCurve3(
+        new THREE.Vector3(c[i], c[i + 1], 0), new THREE.Vector3(c[i + 2], c[i + 3], 0),
+        new THREE.Vector3(c[i + 4], c[i + 5], 0), new THREE.Vector3(c[i + 6], c[i + 7], 0)));
     const ro = d.bore / 2 + SPOUT_WALL;
     this.spout.geometry.dispose();
     this.spout.geometry = new THREE.TubeGeometry(curve, 96, ro, 14, false);

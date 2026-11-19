@@ -1,10 +1,11 @@
-import { analyze, Analysis, CHECKS, CheckKey, DimKey, Dims, DIMS, enabled, Scenario, SPEC, TOL, UNIT } from "./model";
+import { analyze, Analysis, CHECKS, CheckKey, DimKey, Dims, EDITABLE, enabled, Scenario, SPEC, standard, TOL, UNIT } from "./model";
 
 // Keeps the design pouring into the cup. Unlocked dimensions are free; locked ones (and the one
 // being dragged) are fixed. Each step is a damped Gauss-Newton (Levenberg-Marquardt) move that
 // changes the free dimensions as little as possible, weighted by how reluctant each one is to
 // move, while pushing every failing check back over its line. With "keep centred" on, the middle
-// of the stream is also pulled to the middle of the cup, so dimensions move together.
+// of the stream is also pulled to the middle of the cup, so dimensions move together. The
+// gooseneck and mug are standard parts: never free, they follow the body through standard().
 
 const W = 60; // weight of a failing check against moving a dimension
 const WC = 20; // weight of centring the stream
@@ -20,7 +21,7 @@ function residuals(a: Analysis, d: Dims, t: Dims, free: DimKey[], sc: Scenario, 
     if (!enabled(sc, c.key)) continue;
     if (c.key === "stream") {
       out.push(W * Math.max(0, a.over + SLACK), W * Math.max(0, a.under + SLACK), W * Number(a.missesPlane));
-    } else out.push(W * Math.max(0, a.checks[c.key] + (c.key === "delivery" ? 0 : SLACK)));
+    } else out.push(W * Math.max(0, a.checks[c.key] + (c.key === "delivery" || c.key === "neck" ? 0 : SLACK)));
   }
   if (sc.centered) out.push(WC * (a.mid - a.cx));
   return out;
@@ -72,8 +73,8 @@ export class LM {
   private r: number[] = [];
 
   constructor(d: Dims, free: DimKey[], sc: Scenario) {
-    this.d = { ...d };
-    this.t = { ...d };
+    this.d = standard(d);
+    this.t = { ...this.d };
     this.free = free;
     this.sc = sc;
     this.a = analyze(this.d, sc);
@@ -95,9 +96,8 @@ export class LM {
     for (let j = 0; j < n; j++) {
       const k = free[j];
       const h = 1e-3 * UNIT(k);
-      const dd = { ...this.d };
       // step away from a bound, not into it
-      dd[k] = this.d[k] + h > SPEC[k].max ? this.d[k] - h : this.d[k] + h;
+      const dd = standard({ ...this.d, [k]: this.d[k] + h > SPEC[k].max ? this.d[k] - h : this.d[k] + h });
       const sgn = dd[k] > this.d[k] ? 1 : -1;
       const rr = residuals(analyze(dd, sc), dd, this.t, free, sc, []);
       J.push(rr.map((v, i) => (sgn * (v - r0[i])) / h));
@@ -118,13 +118,14 @@ export class LM {
     for (let tries = 0; tries < 6; tries++) {
       const M = A.map((row, i) => row.map((v, j) => (i === j ? v * (1 + this.lambda) + 1e-9 : v)));
       const step = solveLinear(M, g.slice());
-      const nd = { ...this.d };
+      let nd = { ...this.d };
       let moved = 0;
       for (let j = 0; j < n; j++) {
         const k = free[j];
         nd[k] = clampDim(k, this.d[k] + step[j]);
         moved = Math.max(moved, Math.abs(nd[k] - this.d[k]) / UNIT(k));
       }
+      nd = standard(nd);
       const na = analyze(nd, sc);
       const nc = sq(residuals(na, nd, this.t, free, sc, this.r));
       if (nc < this.cost) {
@@ -245,14 +246,14 @@ export class Designer {
   }
 
   constructor(d: Dims, sc: Scenario) {
-    this.dims = { ...d };
+    this.dims = standard(d);
     this.sc = sc;
     this.a = analyze(this.dims, sc);
     this.initial = this.snapshot();
   }
 
   free(extraLocked?: DimKey | null) {
-    return DIMS.map((s) => s.key).filter((k) => !this.locks.has(k) && k !== extraLocked);
+    return EDITABLE.map((s) => s.key).filter((k) => !this.locks.has(k) && k !== extraLocked);
   }
 
   touch() {
@@ -266,10 +267,10 @@ export class Designer {
   }
 
   set(k: DimKey, v: number) {
-    if (clampDim(k, v) === this.dims[k]) return;
+    if (SPEC[k].fixed || clampDim(k, v) === this.dims[k]) return;
     this.record();
     this.pinned = k;
-    this.dims = { ...this.dims, [k]: clampDim(k, v) };
+    this.dims = standard({ ...this.dims, [k]: clampDim(k, v) });
     this.version++;
     this.touch();
   }
@@ -279,7 +280,7 @@ export class Designer {
     this.pinned = null;
     const next = { ...d };
     for (const k of Array.from(this.locks)) next[k] = this.dims[k];
-    this.dims = next;
+    this.dims = standard(next);
     this.version++;
     this.touch();
   }
@@ -297,6 +298,7 @@ export class Designer {
   setLocks(keys: DimKey[], on: boolean, releasePin = false) {
     this.record();
     for (const k of keys) {
+      if (SPEC[k].fixed) continue;
       if (on) this.locks.add(k);
       else this.locks.delete(k);
       if (releasePin && this.pinned === k) this.pinned = null;
@@ -332,8 +334,9 @@ export class Designer {
         // It can't be done. Rather than leave the free dimensions wherever the compromise
         // dragged them, put them back as they were when it last worked, keeping what the
         // person set and locked, and show that failing.
-        const back = { ...this.good };
-        for (const k of Object.keys(back) as DimKey[]) if (this.locks.has(k) || k === this.pinned) back[k] = this.dims[k];
+        const kept = { ...this.good };
+        for (const k of Object.keys(kept) as DimKey[]) if (this.locks.has(k) || k === this.pinned) kept[k] = this.dims[k];
+        const back = standard(kept);
         this.dims = back;
         this.a = analyze(back, this.sc);
         this.version++;
@@ -347,7 +350,7 @@ export class Designer {
   private async diagnose() {
     const token = ++this.diagToken;
     const fails = failing(this.a, this.sc);
-    const locked = DIMS.map((s) => s.key).filter((k) => this.locks.has(k) || k === this.pinned);
+    const locked = EDITABLE.map((s) => s.key).filter((k) => this.locks.has(k) || k === this.pinned);
     const free = this.free(this.pinned);
     const diag: Diagnosis = { failing: fails, fixes: [], searched: false, allLocked: free.length === 0 };
     this.diag = diag;
